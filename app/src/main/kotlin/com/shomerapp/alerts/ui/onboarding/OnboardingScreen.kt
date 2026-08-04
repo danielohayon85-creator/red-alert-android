@@ -13,6 +13,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -21,9 +22,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.weight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DoNotDisturbOn
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +51,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -83,19 +92,35 @@ fun OnboardingScreen(modifier: Modifier = Modifier, onCompleted: () -> Unit, vie
 private fun StepScaffold(
     title: String,
     explanation: String? = null,
+    icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit = {},
     nextButton: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding() // enableEdgeToEdge() draws content under system bars — without
+            // this, the bottom button can crowd or sit under the gesture/nav bar (real bug, seen
+            // on device).
             .padding(Spacing.screen),
-        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.itemGap)) {
             Text(text = title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
             explanation?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
             content()
+        }
+        // weight(1f) both pins the button to the bottom (like the old SpaceBetween did) AND gives
+        // a short step (e.g. just a title + one line + status) a real place to put an icon instead
+        // of a large dead gap between the content and the button.
+        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(104.dp),
+                    tint = AmberPrimary.copy(alpha = 0.3f),
+                )
+            }
         }
         nextButton?.invoke()
     }
@@ -112,7 +137,7 @@ private fun WelcomeStep(onNext: () -> Unit) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(Spacing.screen),
+        modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(Spacing.screen),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(
@@ -203,6 +228,7 @@ private fun NotificationsStep(onNext: () -> Unit) {
     StepScaffold(
         title = stringResource(R.string.onboarding_notifications_title),
         explanation = stringResource(R.string.onboarding_notifications_explain),
+        icon = Icons.Filled.Notifications,
         content = { PermissionStatusRow(granted) },
         nextButton = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
@@ -238,6 +264,7 @@ private fun DndStep(onNext: () -> Unit) {
     StepScaffold(
         title = stringResource(R.string.onboarding_dnd_title),
         explanation = stringResource(R.string.onboarding_dnd_explain),
+        icon = Icons.Filled.DoNotDisturbOn,
         content = { PermissionStatusRow(granted) },
         nextButton = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
@@ -261,6 +288,7 @@ private fun FullScreenIntentStep(onNext: () -> Unit) {
     StepScaffold(
         title = stringResource(R.string.onboarding_fsi_title),
         explanation = stringResource(R.string.onboarding_fsi_explain),
+        icon = Icons.Filled.Fullscreen,
         content = { PermissionStatusRow(granted) },
         nextButton = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
@@ -289,6 +317,7 @@ private fun BatteryStep(onNext: () -> Unit) {
     StepScaffold(
         title = stringResource(R.string.onboarding_battery_title),
         explanation = stringResource(R.string.onboarding_battery_explain),
+        icon = Icons.Filled.BatteryChargingFull,
         content = { PermissionStatusRow(granted) },
         nextButton = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
@@ -338,7 +367,7 @@ private fun SoundStep(onNext: () -> Unit) {
     val immediateConfirmed by viewModel.immediateSoundConfirmed.collectAsStateWithLifecycle()
     val prewarningConfirmed by viewModel.prewarningSoundConfirmed.collectAsStateWithLifecycle()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         Column(modifier = Modifier.weight(1f)) {
             SoundSettingsScreen(viewModel = viewModel)
         }
@@ -360,6 +389,7 @@ private fun FinishStep(onFinish: () -> Unit) {
     StepScaffold(
         title = stringResource(R.string.onboarding_finish_title),
         explanation = stringResource(R.string.disclaimer_short),
+        icon = Icons.Filled.VerifiedUser,
         nextButton = {
             Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_finish_button)) }
         },
