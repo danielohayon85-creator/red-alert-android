@@ -6,7 +6,7 @@
 
 ## סטטוס נוכחי
 
-בפיתוח לפי מפרט הפרויקט, בשלבים. **כל 7 השלבים הושלמו** ברמת קוד — **טרם נבנה/נבדק על מכשיר אמיתי**, ר' "הערה חשובה" למטה.
+בפיתוח לפי מפרט הפרויקט, בשלבים. **כל 7 השלבים הושלמו, והאפליקציה נבנית בהצלחה** ב-CI (כולל APK debug + APK/AAB release לא-חתומים) — עדיין **לא נבדקה על מכשיר אמיתי**, ר' "הערה חשובה" למטה.
 
 | שלב | תיאור | סטטוס |
 |---|---|---|
@@ -29,15 +29,39 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 ./gradlew installDebug
 ```
 
-**מסלול מהיר לקבלת APK בלי Android Studio מקומי:** יש workflow ב-`.github/workflows/build.yml` שרץ אוטומטית בכל push ל-`main` (ו-workflow_dispatch ידני) — בונה APK debug ומריץ את כל בדיקות היחידה על שרתי GitHub Actions (שם יש גישת רשת מלאה, בניגוד לסביבה שבה נכתב הקוד, ר' למטה). ה-APK זמין להורדה מטאב **Actions** בריפו, תחת ה-artifact `azakon-debug-apk`.
+**מסלול מהיר לקבלת APK בלי Android Studio מקומי:** יש workflow ב-`.github/workflows/build.yml` שרץ אוטומטית בכל push ל-`main` (ו-workflow_dispatch ידני) — מריץ את כל בדיקות היחידה, בונה APK debug, ובונה גם APK+AAB release **לא-חתומים** (כדי לוודא ש-R8/minification לא שוברים כלום — `assembleDebug` לא בודק את זה בכלל, כי מיזעור מופעל רק ב-release). הכל זמין להורדה מטאב **Actions** בריפו: `azakon-debug-apk` ו-`azakon-release-unsigned`.
 
-### ⚠️ הערה חשובה על הסביבה שבה נכתב הקוד — ומה כן אומת בפועל
+### ⚠️ מצב אימות — עודכן אחרי ריצת CI אמיתית
 
-הקוד נכתב בסביבת פיתוח **ללא גישת רשת ל-`dl.google.com`** (חסום ברמת מדיניות רשת, לא ניתן לעקיפה) — כלומר **לא ניתן היה להריץ כאן `./gradlew assembleDebug` על המודול המלא**, כי גם Android Gradle Plugin וגם ה-Android SDK עצמו מתארחים שם.
+**סביבת הפיתוח שבה נכתב הקוד** (כאן) חסומה מ-`dl.google.com` ברמת מדיניות רשת — Android Gradle Plugin וה-SDK עצמו מתארחים שם, ולכן מעולם לא הצלחתי להריץ `./gradlew assembleDebug` על המודול המלא בסביבה הזו. זו עדיין המגבלה הקבועה של סביבת הכתיבה.
 
-**אבל:** ל-Maven Central (ולכן גם ל-Kotlin/kotlinx/OkHttp/JUnit) הייתה גישה. מכיוון שרוב לוגיקת הליבה (`domain/`, ורוב `data/`) נכתבה בכוונה ללא תלות ב-Android framework (בדיוק כדי שתהיה ניתנת לבדיקה כיחידה), הורכב מודול Kotlin/JVM טהור זמני עם כל הקבצים האלה + הבדיקות שלהם, והורץ בפועל. **התוצאה: 61 בדיקות, 61 עברו, 0 נכשלו** — כולל כל התרחישים של `AlertSessionReducer` (מכונת המצבים המלאה של §4.1/§10), `AlertClassifier` (כל שורה בטבלת §4), parsing/BOM, נרמול/חיפוש אזורים, דה-דופליקציה, ו-`OrefPollingRepository` מקצה לקצה. זו לא "קריאה זהירה" — זו הרצה אמיתית.
+**אבל ב-CI (GitHub Actions, גישת רשת מלאה) הבנייה המלאה רצה בפועל ועברה בירוק**, אחרי שתיקנתי 3 שגיאות קומפילציה אמיתיות שהיא תפסה בריצה הראשונה (ר' היסטוריית commits — `import androidx.compose.runtime.getValue` חסר בשני קבצים, ו-`@OptIn(ExperimentalLayoutApi::class)` חסר ב-`DebugPanelScreen.kt`). המשמעות בפועל:
 
-**מה עדיין *לא* אומת** (דורש Android SDK אמיתי): כל שכבת ה-UI (Compose), ה-Activities/Service/Receiver, חיווט Hilt המלא, Room, MediaPlayer/TextToSpeech/Vibrator, DataStore, ו-WorkManager. אלה בדיוק מה שה-workflow ב-GitHub Actions בודק כשהוא רץ — **מומלץ לבדוק שם שהבנייה עברה בירוק** לפני שמתקינים על מכשיר.
+- **כל הקומפילציה, כולל Compose, אומתה** — לא רק שכבת הלוגיקה הטהורה.
+- **כל גרף ה-Hilt אומת**: Dagger מוודא בזמן קומפילציה שכל תלות ניתנת לספק; הצלחת ה-build מוכיחה רטרואקטיבית שאין עוד באגים כמו החסר-constructor שתפסתי ידנית בשלב 3.
+- **סכימת Room אומתה** (KSP מייצר ומוודא את ה-DAOs/Entities בזמן build).
+- **מיזוג ה-Manifest אומת**.
+- **R8/minification ב-release אומת** (`assembleRelease`/`bundleRelease` ב-CI) — זה בדיוק סוג הבעיה (keep rules חסרים) שגורמת ל-crash רק ב-release, אחרי שה-debug עבד מצוין.
+- קודם לכן אימתתי גם 61 בדיקות יחידה אמיתיות (לא רק "קריאה זהירה") על מודול Kotlin/JVM טהור זמני, לכל לוגיקת הליבה (`AlertSessionReducer`, `AlertClassifier`, parsing, dedup, אזורים) — זה עדיין תקף ורץ עכשיו גם דרך ה-Gradle module האמיתי ב-CI.
+
+**מה עדיין *לא* אומת** (ואי אפשר לאמת בלי מכשיר אמיתי / Android Studio עם emulator): התנהגות runtime בפועל — מסך התרעה שמופיע על מסך נעול, צליל/רטט/TTS בפועל, מעברי מצב חלקים, TalkBack/נגישות אמיתית, שני מצבי FSI, ועוד סעיפי הבדיקה שמפורטים ב-§11 של המפרט המקורי.
+
+## מוכנות להעלאה ל-Play Store — מה נעשה כאן ומה עדיין דורש אותך
+
+| נושא | סטטוס |
+|---|---|
+| הקוד מתקמפל (debug + release, כולל R8) | ✅ מאומת ב-CI |
+| בדיקות יחידה ללוגיקת הליבה | ✅ 61/61 עוברות |
+| טופס PLAY_DECLARATIONS.md (specialUse, FSI, תיאור חנות, Data Safety) | ✅ טיוטת נוסח קיימת — **לא הוגשה** |
+| **חתימת ה-APK/AAB** (נדרש להעלאה בפועל) | ❌ **לא בוצע בכוונה** — דורש keystore פרטי שרק אתה צריך ליצור ולשמור; לא משהו שאני אמור לייצר/להחזיק |
+| מזהי AdMob אמיתיים (במקום מזהי הבדיקה של גוגל) | ❌ דורש חשבון AdMob שלך |
+| אייקון אפליקציה מעוצב | ❌ עדיין placeholder (פעמון פשוט) |
+| בדיקה על מכשיר/emulator אמיתי | ❌ לא בוצעה בשום שלב |
+| חשבון Google Play Console + הגשה בפועל | ❌ לא בוצע |
+
+**איך יוצרים חתימה ומחברים ל-CI (אופציונלי, כדי שגם ה-workflow יפיק build חתום):**
+1. ב-Android Studio: `Build → Generate Signed Bundle/APK` → צור keystore חדש, שמור אותו **במקום בטוח מחוץ לריפו** (איבוד ה-keystore = לא ניתן לעדכן את האפליקציה בחנות לעולם).
+2. אם רוצים חתימה אוטומטית ב-GitHub Actions: מעלים את ה-keystore (מקודד ב-Base64) ואת הסיסמאות כ-GitHub Secrets, ומוסיפים `signingConfigs` ל-`app/build.gradle.kts` שקורא אותם מ-env vars — **לא בוצע כאן בכוונה**, כי זה מחייב להזין credentials אמיתיים שלך.
 
 ## החלטות ארכיטקטוניות וסטיות מהמפרט המקורי
 
