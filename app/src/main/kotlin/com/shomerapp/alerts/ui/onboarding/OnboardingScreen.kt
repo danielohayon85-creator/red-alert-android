@@ -37,7 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.graphicsLayer
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -123,30 +124,26 @@ private fun WelcomeStep(onNext: () -> Unit) {
             WelcomeBadgeIcon(
                 modifier = Modifier
                     .size(88.dp)
-                    .graphicsLayer {
-                        val scale = 0.5f + 0.5f * intro.value
-                        scaleX = scale
-                        scaleY = scale
-                        alpha = intro.value
-                    },
+                    .scale(0.5f + 0.5f * intro.value)
+                    .alpha(intro.value),
             )
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = AmberPrimary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = intro.value },
+                modifier = Modifier.fillMaxWidth().alpha(intro.value),
             )
             Text(
                 text = stringResource(R.string.onboarding_welcome_title),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = intro.value },
+                modifier = Modifier.fillMaxWidth().alpha(intro.value),
             )
             Text(
                 text = stringResource(R.string.onboarding_welcome_disclaimer),
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.graphicsLayer { alpha = intro.value },
+                modifier = Modifier.alpha(intro.value),
             )
         }
         Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_next_button)) }
