@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">אזעקון</string>
+    <string name="disclaimer_short">אפליקציה עצמאית שאינה קשורה לפיקוד העורף או לצה"ל. אינה תחליף למערכות ההתרעה הרשמיות.</string>
+
+    <!-- Main screen -->
+    <string name="main_status_title">האם אני מוגן?</string>
+    <string name="main_status_active">פעיל</string>
+    <string name="main_status_connecting">מתחבר</string>
+    <string name="main_status_inactive">לא מוגן</string>
+    <string name="main_last_update">עדכון אחרון: לפני %1$s</string>
+    <string name="nav_main">ראשי</string>
+    <string name="nav_history">היסטוריה</string>
+    <string name="nav_settings">הגדרות</string>
+
+    <!-- Placeholders wired up in later stages -->
+    <string name="onboarding_placeholder">אונבורדינג ייבנה בשלב 6</string>
+    <string name="history_placeholder">היסטוריית התרעות תיבנה בשלב 5–7</string>
+    <string name="settings_placeholder">מסכי הגדרות ייבנו בשלב 6</string>
+</resources>

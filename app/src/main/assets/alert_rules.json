@@ -1,0 +1,13 @@
+{
+  "_comment": "AlertClassifier config — routes by title string first, cat only as secondary corroboration (see §4 of spec: cat mapping is unstable over time, e.g. cat 13 changed meaning). Evaluated top-to-bottom; first match wins. Unmatched titles fall back to defaultKind, which MUST stay IMMEDIATE — a false positive is safer than a missed alert.",
+  "titleRules": [
+    { "kind": "ALL_CLEAR", "match": "contains", "patterns": ["האירוע הסתיים"] },
+    { "kind": "PREWARNING", "match": "startsWith", "patterns": ["בדקות הקרובות צפויות להתקבל התרעות"] },
+    { "kind": "IMMEDIATE", "match": "contains", "patterns": ["ירי רקטות", "טילים", "כלי טיס עוין", "כטב\"מ", "מל\"ט", "חדירת מחבלים", "חבלנית עוינת", "רדיולוגי", "חומרים מסוכנים", "לוחמה בלתי קונבנציונלית"] },
+    { "kind": "INFO", "match": "contains", "patterns": ["רעידת אדמה", "צונאמי"] }
+  ],
+  "catFallback": {
+    "_comment": "Deliberately left empty — no cat->kind mapping is reliable enough to encode (see spec §4). Unmatched titles use defaultKind instead of guessing from cat."
+  },
+  "defaultKind": "IMMEDIATE"
+}

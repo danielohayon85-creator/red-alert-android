@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Placeholder bell glyph — replace with final brand icon before release.
+         Deliberately not the Home Front Command emblem or color scheme (§7.1.D). -->
+    <path
+        android:fillColor="#F5A623"
+        android:pathData="M54,34
+            C44,34 37,41 37,51
+            L37,62
+            L31,72
+            L77,72
+            L71,62
+            L71,51
+            C71,41 64,34 54,34
+            Z" />
+    <path
+        android:fillColor="#F5A623"
+        android:pathData="M46,76
+            C46,81.5 49.6,85 54,85
+            C58.4,85 62,81.5 62,76
+            Z" />
+</vector>
