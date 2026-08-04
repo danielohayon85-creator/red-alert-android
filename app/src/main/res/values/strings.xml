@@ -17,4 +17,13 @@
     <string name="onboarding_placeholder">אונבורדינג ייבנה בשלב 6</string>
     <string name="history_placeholder">היסטוריית התרעות תיבנה בשלב 5–7</string>
     <string name="settings_placeholder">מסכי הגדרות ייבנו בשלב 6</string>
+
+    <!-- Foreground service notifications -->
+    <string name="notification_channel_status_name">סטטוס הגנה</string>
+    <string name="notification_channel_status_description">התראה מתמדת שמראה שהאפליקציה פעילה ברקע</string>
+    <string name="notification_channel_connection_lost_name">אובדן חיבור</string>
+    <string name="notification_channel_connection_lost_description">התראה כשהאפליקציה לא הצליחה להתחבר לשרת ההתרעות</string>
+    <string name="notification_status_title">מגן עליך</string>
+    <string name="notification_connection_lost_title">אין חיבור — אתה לא מוגן כרגע</string>
+    <string name="notification_connection_lost_text">האפליקציה לא הצליחה להתחבר לשרת ההתרעות. בדוק את החיבור לאינטרנט.</string>
 </resources>

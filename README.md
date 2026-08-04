@@ -6,13 +6,13 @@
 
 ## סטטוס נוכחי
 
-בפיתוח לפי מפרט הפרויקט, בשלבים. **שלבים 1–2 הושלמו**, שלבים 3–7 עדיין לא.
+בפיתוח לפי מפרט הפרויקט, בשלבים. **שלבים 1–3 הושלמו**, שלבים 4–7 עדיין לא.
 
 | שלב | תיאור | סטטוס |
 |---|---|---|
 | 1 | שלד: Gradle, Hilt, ניווט, ערכת נושא RTL, `areas.json` | ✅ הושלם |
 | 2 | שכבת רשת: polling, parsing, BOM, דה-דופליקציה, מיפוי אזורים, מצב Mock | ✅ הושלם |
-| 3 | Foreground Service + שרידות + בריאות מערכת | ⏳ טרם |
+| 3 | Foreground Service + שרידות + בריאות מערכת | ✅ הושלם |
 | 4 | מנוע אודיו: MediaPlayer, TTS, רטט, בחירת צליל | ⏳ טרם |
 | 5 | מסך התרעה + מכונת מצבים (PREWARNING→IMMEDIATE→ALL_CLEAR) | ⏳ טרם |
 | 6 | הגדרות ואונבורדינג | ⏳ טרם |
@@ -37,6 +37,17 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 - **פרסומות (סטייה מכוונת מהמפרט)**: המפרט המקורי אסר במפורש הוספת AdMob/SDK צד ג' (§7.1.E), כדי לשמור על טופס Data Safety פשוט ועל 100% פרטיות מקומית. **לבקשת המשתמש הוספו פרסומות באנר (Google AdMob)** במסך הראשי, בהיסטוריה ובהגדרות. הוחלט **שלא** להציג פרסומות במסך ההתרעה (`AlertActivity`) או בשלבי אונבורדינג קריטיים (הרשאות, בדיקת צליל) — פרסומת שם עלולה לעכב אדם מלהיכנס לממ"ד. יש לעדכן בהתאם את טופס ה-Data Safety ב-Play Console (ר' `PLAY_DECLARATIONS.md`, ייכתב בשלב מאוחר): הוספת SDK חיצוני שאוסף Advertising ID.
   - **`app/src/main/kotlin/.../ui/ads/BannerAdView.kt`** משתמש כרגע במזהי פרסומת בדיקה **פומביים של גוגל** (`ca-app-pub-3940256099942544/...`) — כלומר לא ייווצרו הכנסות אמיתיות. יש להחליף למזהי AdMob אמיתיים (App ID ב-`AndroidManifest.xml` + Ad Unit ID ב-`BannerAdView.kt`) מתוך חשבון AdMob של המפתח לפני release.
 - **Repo נפרד**: הריפו `emergency-system` המקורי הוא פרויקט Flask/Python לא קשור (מערכת ניהול חירום לרשות מקומית) — הפרויקט הזה נוצר כריפו GitHub נפרד (`red-alert-android`) לבקשת המשתמש.
+
+## שלב 3 — הערות
+
+- **`AlertForegroundService`** (`LifecycleService`) עוטף את `OrefPollingRepository` משלב 2: מאזין ל-`ConnectivityObserver.isConnected` עם `collectLatest` — כשהחיבור נופל, ה-collect הפנימי על `pollLoop()` מבוטל אוטומטית (הפולינג נעצר לגמרי); כשהחיבור חוזר, נפתח collect חדש שגם מאפס את ה-backoff לקצב הבסיס. זה בדיוק "עצור פולינג כשאין רשת, חדש מיד כשחוזרת" מ-§6.
+- **התראה מתמדת** (`service_status`, IMPORTANCE_LOW) מתעדכנת בכל פעימת פולינג עם "עדכון אחרון: לפני X" חי. **התראת אובדן חיבור** (`connection_lost`, IMPORTANCE_HIGH) יורה **פעם אחת** בדיוק ברגע שחוצה 10 כשלים רצופים — לא בכל כשל בנפרד — לפי `ServiceHealthTracker.onPollFailure()` שמחזיר `true` רק על מעבר הסף.
+- **בריאות המערכת מחוברת בפועל למסך הראשי**: `ServiceHealthTracker` הוא singleton משותף בין ה-Service ל-UI (אין binding, שני הצדדים פשוט מזריקים את אותו singleton דרך Hilt). `MainScreen` הוחלף מ-placeholder סטטי לכרטיס חי (🟢/🟡/🔴 + "עדכון אחרון" מתעדכן כל שנייה).
+- **WakeLock**: `PARTIAL_WAKE_LOCK` עם timeout חסום (15 דקות) שמתחדש בכל פעימת פולינג — כל עוד הפולינג "נושם" הנעילה לא פוקעת, אבל אם הלולאה נתקעת/מתה היא פוקעת מעצמה במקום לדלוף לנצח (§6).
+- **שרידות**: `BootReceiver` (מטפל ב-`BOOT_COMPLETED`/`MY_PACKAGE_REPLACED`) ו-`ServiceWatchdogWorker` (WorkManager periodic, 15 דק') **שניהם לא מפעילים את השירות אם `onboardingCompleted` עדיין `false`** ב-`AppPreferences` (DataStore חדש, מינימלי בכוונה — שלב 6 יוסיף עוד מפתחות). ה-watchdog לא בודק "האם השירות חי" עם flag שביר — הוא פשוט קורא שוב ל-`startForegroundService` בלי תנאי; זה idempotent ובטוח יותר.
+- **`ShomerApplication` מיישם `Configuration.Provider`** כדי ש-WorkManager ישתמש ב-`HiltWorkerFactory` (נדרש כדי ש-`ServiceWatchdogWorker` יוכל להזריק `AppPreferences`), ומתזמן את ה-watchdog ב-`onCreate()` (idempotent דרך `ExistingPeriodicWorkPolicy.KEEP`).
+- **מה עוד לא קיים**: שום UI לא מפעיל את השירות בפועל עדיין (אין onboarding שמסמן `onboardingCompleted=true`, ואין בקשת POST_NOTIFICATIONS בזמן ריצה) — זה מכוון, ומגיע בשלב 6. גם הטיפול בהתרעה שהתקבלה בפועל (`PollOutcome.AlertUpdate`) עדיין רק מעדכן בריאות ולא מפעיל צליל/מסך — מסומן ב-TODO בקוד, שלבים 4–5.
+- באג אמיתי מ-שלב 2 שתוקן כאן: ל-`AlertDeduplicator` לא היה `@Inject constructor` — Hilt לא היה מצליח לבנות את `OrefPollingRepository` שתלוי בו. תוקן והוסף `@Singleton`.
 
 ## שלב 2 — הערות
 

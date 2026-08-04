@@ -2,6 +2,8 @@ package com.shomerapp.alerts.domain
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.inject.Inject
+import javax.inject.Singleton
 
 data class DedupResult(val isNewEvent: Boolean, val newCities: List<String>)
 
@@ -10,8 +12,13 @@ data class DedupResult(val isNewEvent: Boolean, val newCities: List<String>)
  * event spreads — only newly-added cities should trigger a fresh notification, not a whole new
  * alert from scratch. In-memory only for now; surviving process death is handled once Room-backed
  * event persistence lands in Stage 5.
+ *
+ * @Singleton is required here, not just a nicety: this must be the SAME instance the polling
+ * repository uses across its lifetime, or dedup state resets on every injection and every
+ * alert looks "new" again.
  */
-class AlertDeduplicator {
+@Singleton
+class AlertDeduplicator @Inject constructor() {
     private val mutex = Mutex()
     private val seenCitiesByAlertId = mutableMapOf<String, MutableSet<String>>()
 
