@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+}
+
+// Real credentials never live in git — locally via a git-ignored keystore.properties (copy
+// keystore.properties.example), or in CI via secrets (see .github/workflows/build.yml). Absent
+// either, release builds stay unsigned exactly as before — this file's presence is the only
+// thing that changes behavior, so CI and this sandbox both keep working with no keystore at all.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val hasKeystoreProperties = keystorePropertiesFile.exists()
+val keystoreProperties = Properties().apply {
+    if (hasKeystoreProperties) load(keystorePropertiesFile.inputStream())
 }
 
 android {
@@ -22,11 +34,25 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    signingConfigs {
+        if (hasKeystoreProperties) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasKeystoreProperties) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             applicationIdSuffix = ".debug"

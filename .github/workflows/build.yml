@@ -42,18 +42,31 @@ jobs:
           name: azakon-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      # Unsigned — assembleDebug never exercises R8/minification (isMinifyEnabled=false for
-      # debug), so this is the only thing in CI that would catch a missing ProGuard keep rule
-      # before it becomes a release-only runtime crash. Signing (needed for an actual Play
-      # Store upload) requires a keystore the app owner must create and manage themselves — not
-      # something to generate or embed here.
-      - name: Build unsigned release APK + AAB (verifies R8/minification only, not signed)
+      # No-op unless the repo owner has added these secrets (Settings -> Secrets and variables ->
+      # Actions): KEYSTORE_BASE64 (base64 of the .jks), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
+      # Without them, release builds stay unsigned exactly as before — this step just writes the
+      # same keystore.properties file app/build.gradle.kts already knows how to read locally.
+      - name: Set up release signing from CI secrets (skipped if not configured)
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.jks"
+          cat > "$GITHUB_WORKSPACE/keystore.properties" <<EOF
+          storeFile=$GITHUB_WORKSPACE/release.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      # Also the only thing in CI that exercises R8/minification at all, since assembleDebug
+      # never does (isMinifyEnabled=false for debug) — catches a missing ProGuard keep rule
+      # before it becomes a release-only runtime crash.
+      - name: Build release APK + AAB (signed if secrets are configured, unsigned otherwise)
         run: ./gradlew assembleRelease bundleRelease --stacktrace
 
-      - name: Upload unsigned release artifacts
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: azakon-release-unsigned
+          name: azakon-release
           path: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab

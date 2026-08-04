@@ -53,15 +53,36 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 | הקוד מתקמפל (debug + release, כולל R8) | ✅ מאומת ב-CI |
 | בדיקות יחידה ללוגיקת הליבה | ✅ 61/61 עוברות |
 | טופס PLAY_DECLARATIONS.md (specialUse, FSI, תיאור חנות, Data Safety) | ✅ טיוטת נוסח קיימת — **לא הוגשה** |
-| **חתימת ה-APK/AAB** (נדרש להעלאה בפועל) | ❌ **לא בוצע בכוונה** — דורש keystore פרטי שרק אתה צריך ליצור ולשמור; לא משהו שאני אמור לייצר/להחזיק |
+| **מנגנון חתימה** (build.gradle.kts + workflow) | ✅ מוכן ומחובר — קורא credentials מקובץ מקומי או מ-CI secrets |
+| **ה-keystore בפועל + הסיסמאות** | ❌ **לא נוצר בכוונה** — זה שלך ליצור ולשמור; ר' למטה |
 | מזהי AdMob אמיתיים (במקום מזהי הבדיקה של גוגל) | ❌ דורש חשבון AdMob שלך |
 | אייקון אפליקציה מעוצב | ❌ עדיין placeholder (פעמון פשוט) |
 | בדיקה על מכשיר/emulator אמיתי | ❌ לא בוצעה בשום שלב |
 | חשבון Google Play Console + הגשה בפועל | ❌ לא בוצע |
 
-**איך יוצרים חתימה ומחברים ל-CI (אופציונלי, כדי שגם ה-workflow יפיק build חתום):**
-1. ב-Android Studio: `Build → Generate Signed Bundle/APK` → צור keystore חדש, שמור אותו **במקום בטוח מחוץ לריפו** (איבוד ה-keystore = לא ניתן לעדכן את האפליקציה בחנות לעולם).
-2. אם רוצים חתימה אוטומטית ב-GitHub Actions: מעלים את ה-keystore (מקודד ב-Base64) ואת הסיסמאות כ-GitHub Secrets, ומוסיפים `signingConfigs` ל-`app/build.gradle.kts` שקורא אותם מ-env vars — **לא בוצע כאן בכוונה**, כי זה מחייב להזין credentials אמיתיים שלך.
+### יצירת keystore וחתימת release
+
+**חשוב לפני שמתחילים:** שמור את קובץ ה-keystore **מחוץ לריפו**, במקום גיבוי בטוח (מנג'ר סיסמאות, כספת ענן פרטית). איבוד שלו אחרי שהאפליקציה כבר עלתה לחנות = **אין אפשרות לעדכן אותה לעולם**, רק לפרסם אפליקציה חדשה עם applicationId אחר.
+
+**שלב 1 — יצירת ה-keystore (פעם אחת):**
+```bash
+keytool -genkeypair -v -keystore azakon-release.jks -alias azakon \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+יבקש ליצור סיסמה לקובץ (`storePassword`) וסיסמה למפתח (`keyPassword`, אפשר זהה) ופרטי זהות (שם, ארגון וכו' — לא קריטי, לא מוצג למשתמשים).
+
+**שלב 2 — בנייה חתומה מקומית:**
+```bash
+cp keystore.properties.example keystore.properties
+# ערוך את keystore.properties: נתיב מלא ל-.jks + שתי הסיסמאות מהשלב הקודם
+./gradlew assembleRelease bundleRelease
+```
+`keystore.properties` כבר ב-`.gitignore` — לא ייכנס לריפו בטעות. `app/build.gradle.kts` בודק אם הקובץ קיים ומחתים אוטומטית אם כן; בלעדיו (המצב הנוכחי ב-CI) ה-build נשאר לא-חתום בדיוק כמו קודם.
+
+**שלב 3 (אופציונלי) — חתימה אוטומטית ב-GitHub Actions:**
+1. קודד את הקובץ: `base64 -i azakon-release.jks | pbcopy` (מק) או `base64 -w0 azakon-release.jks` (לינוקס).
+2. ברפו: **Settings → Secrets and variables → Actions → New repository secret**, הוסף ארבעה: `KEYSTORE_BASE64` (התוכן המקודד), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+3. זהו — ה-workflow כבר בודק אם `KEYSTORE_BASE64` קיים ומחתים אוטומטית; בלי הסודות האלה הוא ממשיך לבנות unsigned בדיוק כמו היום, בלי לשבור כלום.
 
 ## החלטות ארכיטקטוניות וסטיות מהמפרט המקורי
 
