@@ -26,4 +26,23 @@
     <string name="notification_status_title">מגן עליך</string>
     <string name="notification_connection_lost_title">אין חיבור — אתה לא מוגן כרגע</string>
     <string name="notification_connection_lost_text">האפליקציה לא הצליחה להתחבר לשרת ההתרעות. בדוק את החיבור לאינטרנט.</string>
+    <string name="notification_channel_alert_name">התרעות חיים</string>
+    <string name="notification_channel_alert_description">מציגה את מסך ההתרעה במסך נעול. הצליל מושמע בנפרד ואינו תלוי בערוץ הזה.</string>
+
+    <!-- Alert screen -->
+    <string name="alert_enter_shelter">היכנסו למרחב המוגן</string>
+    <string name="alert_prewarning_title">התרעה מקדימה</string>
+    <string name="alert_prewarning_subtitle">התקדמו למרחב המוגן</string>
+    <string name="alert_prewarning_explain">התרעה אמיתית עשויה להגיע תוך כ-2 דקות. ייתכן גם שלא תגיע כלל.</string>
+    <string name="alert_prewarning_elapsed">עברו %1$s מההתרעה המקדימה</string>
+    <string name="alert_prewarning_expired_title">לא התקבלה התרעה באזורך</string>
+    <string name="alert_immediate_prewarning_note">התרעה מקדימה הופעלה לפני %1$s</string>
+    <string name="alert_confirm_safe_button">אני במרחב המוגן</string>
+    <string name="alert_waiting_for_all_clear_title">המתינו במרחב המוגן</string>
+    <string name="alert_waiting_for_all_clear_text">הזמן שנקבע חלף. טרם התקבלה הודעה על סיום האירוע — המתינו במרחב המוגן.</string>
+    <string name="alert_cleared_title">האירוע הסתיים</string>
+    <string name="alert_cleared_text">ניתן לצאת מהמרחב המוגן</string>
+    <string name="alert_dismiss_button">הבנתי</string>
+    <string name="alert_tts_immediate">%1$s. %2$s. היכנסו למרחב המוגן.</string>
+    <string name="alert_tts_prewarning">התרעה מקדימה. בדקות הקרובות צפויות התרעות באזורך. התקדמו למרחב המוגן.</string>
 </resources>

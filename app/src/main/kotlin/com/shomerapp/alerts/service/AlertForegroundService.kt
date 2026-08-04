@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.shomerapp.alerts.data.connectivity.ConnectivityObserver
 import com.shomerapp.alerts.data.repository.OrefPollingRepository
 import com.shomerapp.alerts.data.repository.PollOutcome
+import com.shomerapp.alerts.domain.AlertSessionManager
 import com.shomerapp.alerts.domain.ServiceHealthTracker
 import com.shomerapp.alerts.service.notification.ServiceNotifications
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,6 +29,7 @@ class AlertForegroundService : LifecycleService() {
     @Inject lateinit var pollingRepository: OrefPollingRepository
     @Inject lateinit var connectivityObserver: ConnectivityObserver
     @Inject lateinit var healthTracker: ServiceHealthTracker
+    @Inject lateinit var sessionManager: AlertSessionManager
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -36,6 +38,7 @@ class AlertForegroundService : LifecycleService() {
         ServiceNotifications.ensureChannels(this)
         startForeground(ServiceNotifications.STATUS_NOTIFICATION_ID, ServiceNotifications.buildStatusNotification(this, null))
         acquireWakeLock()
+        lifecycleScope.launch { sessionManager.restoreFromDatabase() } // §10 crash-recovery
         observeConnectivityAndPoll()
     }
 
@@ -71,8 +74,10 @@ class AlertForegroundService : LifecycleService() {
             is PollOutcome.Empty, is PollOutcome.NoChange -> healthTracker.onPollSuccess()
             is PollOutcome.AlertUpdate -> {
                 healthTracker.onPollSuccess()
-                // TODO(Stage 4/5): trigger AudioEngine + launch AlertActivity for outcome.alert.
-                // Deliberately not implemented yet — this stage only covers polling reliability.
+                // TODO(Stage 6): filter outcome.alert.cities against the user's selected
+                // settlements before forwarding — right now every incoming alert is treated as
+                // relevant since there's no settings UI yet to have picked any.
+                sessionManager.onPollOutcome(outcome)
             }
             is PollOutcome.NetworkError, is PollOutcome.MalformedResponse -> {
                 if (healthTracker.onPollFailure() && ServiceNotifications.hasNotificationPermission(this)) {
