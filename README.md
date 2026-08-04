@@ -29,7 +29,15 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 ./gradlew installDebug
 ```
 
-**⚠️ הערה חשובה על הסביבה שבה נכתב הקוד:** קובץ ה-wrapper (`gradlew`) נוצר ותוכן הקוד נכתב בסביבת פיתוח ללא גישת רשת ל-`dl.google.com` (חסום ברמת מדיניות הרשת של הסביבה) — כלומר **לא ניתן היה להריץ כאן `gradlew build` בפועל** ולוודא קומפילציה, כי גם Android Gradle Plugin וגם ה-Android SDK עצמו מתארחים שם. הקוד נכתב בקפידה לפי מוסכמות Kotlin/Compose/Hilt עדכניות, אבל **יש להריץ בנייה מלאה במכשיר/סביבה עם גישת אינטרנט רגילה (או Android Studio) לפני שמסתמכים עליו**, ולתקן קונפליקטים אם יתגלו (למשל גרסאות תלויות ב-`gradle/libs.versions.toml`).
+**מסלול מהיר לקבלת APK בלי Android Studio מקומי:** יש workflow ב-`.github/workflows/build.yml` שרץ אוטומטית בכל push ל-`main` (ו-workflow_dispatch ידני) — בונה APK debug ומריץ את כל בדיקות היחידה על שרתי GitHub Actions (שם יש גישת רשת מלאה, בניגוד לסביבה שבה נכתב הקוד, ר' למטה). ה-APK זמין להורדה מטאב **Actions** בריפו, תחת ה-artifact `azakon-debug-apk`.
+
+### ⚠️ הערה חשובה על הסביבה שבה נכתב הקוד — ומה כן אומת בפועל
+
+הקוד נכתב בסביבת פיתוח **ללא גישת רשת ל-`dl.google.com`** (חסום ברמת מדיניות רשת, לא ניתן לעקיפה) — כלומר **לא ניתן היה להריץ כאן `./gradlew assembleDebug` על המודול המלא**, כי גם Android Gradle Plugin וגם ה-Android SDK עצמו מתארחים שם.
+
+**אבל:** ל-Maven Central (ולכן גם ל-Kotlin/kotlinx/OkHttp/JUnit) הייתה גישה. מכיוון שרוב לוגיקת הליבה (`domain/`, ורוב `data/`) נכתבה בכוונה ללא תלות ב-Android framework (בדיוק כדי שתהיה ניתנת לבדיקה כיחידה), הורכב מודול Kotlin/JVM טהור זמני עם כל הקבצים האלה + הבדיקות שלהם, והורץ בפועל. **התוצאה: 61 בדיקות, 61 עברו, 0 נכשלו** — כולל כל התרחישים של `AlertSessionReducer` (מכונת המצבים המלאה של §4.1/§10), `AlertClassifier` (כל שורה בטבלת §4), parsing/BOM, נרמול/חיפוש אזורים, דה-דופליקציה, ו-`OrefPollingRepository` מקצה לקצה. זו לא "קריאה זהירה" — זו הרצה אמיתית.
+
+**מה עדיין *לא* אומת** (דורש Android SDK אמיתי): כל שכבת ה-UI (Compose), ה-Activities/Service/Receiver, חיווט Hilt המלא, Room, MediaPlayer/TextToSpeech/Vibrator, DataStore, ו-WorkManager. אלה בדיוק מה שה-workflow ב-GitHub Actions בודק כשהוא רץ — **מומלץ לבדוק שם שהבנייה עברה בירוק** לפני שמתקינים על מכשיר.
 
 ## החלטות ארכיטקטוניות וסטיות מהמפרט המקורי
 
