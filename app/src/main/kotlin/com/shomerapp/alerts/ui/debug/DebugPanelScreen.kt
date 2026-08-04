@@ -2,6 +2,7 @@ package com.shomerapp.alerts.ui.debug
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,7 @@ import com.shomerapp.alerts.domain.model.AlertKind
  * and JSON Replay mode are NOT implemented here — scope-trimmed given the size of the rest of the
  * spec; see README.md "שלב 6" for what's left.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DebugPanelScreen(modifier: Modifier = Modifier, viewModel: DebugPanelViewModel = hiltViewModel()) {
     var kind by remember { mutableStateOf(AlertKind.IMMEDIATE) }
