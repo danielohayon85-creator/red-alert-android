@@ -9,6 +9,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # secrets.* can't be referenced directly inside a step's `if:` (GitHub Actions rejects it as
+    # an unrecognized named-value there) — mirroring it into job-level env makes it visible to
+    # `if: env.HAS_KEYSTORE_SECRET != ''` below.
+    env:
+      HAS_KEYSTORE_SECRET: ${{ secrets.KEYSTORE_BASE64 }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,9 +52,9 @@ jobs:
       # Without them, release builds stay unsigned exactly as before — this step just writes the
       # same keystore.properties file app/build.gradle.kts already knows how to read locally.
       - name: Set up release signing from CI secrets (skipped if not configured)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: ${{ env.HAS_KEYSTORE_SECRET != '' }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.jks"
+          echo "$HAS_KEYSTORE_SECRET" | base64 -d > "$GITHUB_WORKSPACE/release.jks"
           cat > "$GITHUB_WORKSPACE/keystore.properties" <<EOF
           storeFile=$GITHUB_WORKSPACE/release.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
