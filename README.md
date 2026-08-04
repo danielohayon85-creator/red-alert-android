@@ -6,7 +6,7 @@
 
 ## סטטוס נוכחי
 
-בפיתוח לפי מפרט הפרויקט, בשלבים. **כל 7 השלבים הושלמו, והאפליקציה נבנית בהצלחה** ב-CI (כולל APK debug + APK/AAB release לא-חתומים) — עדיין **לא נבדקה על מכשיר אמיתי**, ר' "הערה חשובה" למטה.
+בפיתוח לפי מפרט הפרויקט, בשלבים. **כל 7 השלבים הושלמו, והאפליקציה נבנית בהצלחה מקצה לקצה** ב-CI — בדיקות יחידה, APK debug, וגם APK+AAB **release מלא כולל R8/minification ו-Lint** (לא-חתומים כברירת מחדל) — עדיין **לא נבדקה על מכשיר אמיתי**, ר' "הערה חשובה" למטה.
 
 | שלב | תיאור | סטטוס |
 |---|---|---|
@@ -29,20 +29,27 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 ./gradlew installDebug
 ```
 
-**מסלול מהיר לקבלת APK בלי Android Studio מקומי:** יש workflow ב-`.github/workflows/build.yml` שרץ אוטומטית בכל push ל-`main` (ו-workflow_dispatch ידני) — מריץ את כל בדיקות היחידה, בונה APK debug, ובונה גם APK+AAB release **לא-חתומים** (כדי לוודא ש-R8/minification לא שוברים כלום — `assembleDebug` לא בודק את זה בכלל, כי מיזעור מופעל רק ב-release). הכל זמין להורדה מטאב **Actions** בריפו: `azakon-debug-apk` ו-`azakon-release-unsigned`.
+**מסלול מהיר לקבלת APK בלי Android Studio מקומי:** יש workflow ב-`.github/workflows/build.yml` שרץ אוטומטית בכל push ל-`main` (ו-workflow_dispatch ידני) — מריץ את כל בדיקות היחידה, בונה APK debug, ובונה גם APK+AAB release מלא (חתום אוטומטית אם הוגדרו CI secrets, אחרת **לא-חתום**). הכל זמין להורדה מטאב **Actions** בריפו: `azakon-debug-apk` ו-`azakon-release`.
 
-### ⚠️ מצב אימות — עודכן אחרי ריצת CI אמיתית
+### ✅ מצב אימות — CI ירוק מקצה לקצה (debug + release)
 
 **סביבת הפיתוח שבה נכתב הקוד** (כאן) חסומה מ-`dl.google.com` ברמת מדיניות רשת — Android Gradle Plugin וה-SDK עצמו מתארחים שם, ולכן מעולם לא הצלחתי להריץ `./gradlew assembleDebug` על המודול המלא בסביבה הזו. זו עדיין המגבלה הקבועה של סביבת הכתיבה.
 
-**אבל ב-CI (GitHub Actions, גישת רשת מלאה) הבנייה המלאה רצה בפועל ועברה בירוק**, אחרי שתיקנתי 3 שגיאות קומפילציה אמיתיות שהיא תפסה בריצה הראשונה (ר' היסטוריית commits — `import androidx.compose.runtime.getValue` חסר בשני קבצים, ו-`@OptIn(ExperimentalLayoutApi::class)` חסר ב-`DebugPanelScreen.kt`). המשמעות בפועל:
+**אבל ב-CI (GitHub Actions, גישת רשת מלאה) הבנייה המלאה רצה בפועל ועברה בירוק על כל השלבים**, אחרי כמה סבבי תיקון-אמיתי-מ-CI:
+
+- **3 שגיאות קומפילציה אמיתיות** בריצה הראשונה (`import androidx.compose.runtime.getValue` חסר בשני קבצים, `@OptIn(ExperimentalLayoutApi::class)` חסר ב-`DebugPanelScreen.kt`) — תוקנו.
+- **שגיאת `lintVitalRelease` אמיתית**: `ShomerApplication` מיישם `Configuration.Provider` לצורך Hilt+WorkManager, אבל ה-Manifest לא הסיר במפורש את `WorkManagerInitializer` המובנה — Lint חסם את ה-release build עד שנוסף `<provider tools:node="merge">` עם `tools:node="remove"` על המטא-דאטה. תוקן.
+- **שגיאת syntax ב-workflow YAML עצמו**: `if: ${{ secrets.KEYSTORE_BASE64 != '' }}` ברמת step הוא לא syntax חוקי (GitHub Actions לא מכיר `secrets` בהקשר `if:` של step) — זה גרם ל-2 ריצות CI להיכשל **מיידית בלי להריץ אף job** (0 jobs). תוקן: הסוד מועבר קודם ל-`env:` ברמת ה-job, וה-`if:` בודק `env.HAS_KEYSTORE_SECRET`.
+
+לאחר כל התיקונים, ריצת CI מלאה (commit `746e710`) **עברה בירוק על כל 12 השלבים**: בדיקות יחידה, `assembleDebug`, **וגם `assembleRelease`+`bundleRelease` המלאים כולל R8/minification ו-`lintVitalRelease`**. המשמעות בפועל:
 
 - **כל הקומפילציה, כולל Compose, אומתה** — לא רק שכבת הלוגיקה הטהורה.
 - **כל גרף ה-Hilt אומת**: Dagger מוודא בזמן קומפילציה שכל תלות ניתנת לספק; הצלחת ה-build מוכיחה רטרואקטיבית שאין עוד באגים כמו החסר-constructor שתפסתי ידנית בשלב 3.
 - **סכימת Room אומתה** (KSP מייצר ומוודא את ה-DAOs/Entities בזמן build).
-- **מיזוג ה-Manifest אומת**.
+- **מיזוג ה-Manifest אומת** — כולל ה-provider override שמונע את שגיאת ה-Lint.
 - **R8/minification ב-release אומת** (`assembleRelease`/`bundleRelease` ב-CI) — זה בדיוק סוג הבעיה (keep rules חסרים) שגורמת ל-crash רק ב-release, אחרי שה-debug עבד מצוין.
-- קודם לכן אימתתי גם 61 בדיקות יחידה אמיתיות (לא רק "קריאה זהירה") על מודול Kotlin/JVM טהור זמני, לכל לוגיקת הליבה (`AlertSessionReducer`, `AlertClassifier`, parsing, dedup, אזורים) — זה עדיין תקף ורץ עכשיו גם דרך ה-Gradle module האמיתי ב-CI.
+- **`lintVitalRelease` (בדיקת ה-Lint שחוסמת release) עברה בהצלחה** — לא רק R8, גם ה-Lint pass הנפרד שרץ אחריו.
+- קודם לכן אימתתי גם 61 בדיקות יחידה אמיתיות (לא רק "קריאה זהירה") על מודול Kotlin/JVM טהור זמני, לכל לוגיקת הליבה (`AlertSessionReducer`, `AlertClassifier`, parsing, dedup, אזורים) — זה עדיין תקף ורץ עכשיו גם דרך ה-Gradle module האמיתי ב-CI (`./gradlew test` כחלק מה-workflow).
 
 **מה עדיין *לא* אומת** (ואי אפשר לאמת בלי מכשיר אמיתי / Android Studio עם emulator): התנהגות runtime בפועל — מסך התרעה שמופיע על מסך נעול, צליל/רטט/TTS בפועל, מעברי מצב חלקים, TalkBack/נגישות אמיתית, שני מצבי FSI, ועוד סעיפי הבדיקה שמפורטים ב-§11 של המפרט המקורי.
 
@@ -50,7 +57,7 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 
 | נושא | סטטוס |
 |---|---|
-| הקוד מתקמפל (debug + release, כולל R8) | ✅ מאומת ב-CI |
+| הקוד מתקמפל ובונה (debug + release, כולל R8 ו-Lint) | ✅ מאומת ב-CI מקצה לקצה |
 | בדיקות יחידה ללוגיקת הליבה | ✅ 61/61 עוברות |
 | טופס PLAY_DECLARATIONS.md (specialUse, FSI, תיאור חנות, Data Safety) | ✅ טיוטת נוסח קיימת — **לא הוגשה** |
 | **מנגנון חתימה** (build.gradle.kts + workflow) | ✅ מוכן ומחובר — קורא credentials מקובץ מקומי או מ-CI secrets |
