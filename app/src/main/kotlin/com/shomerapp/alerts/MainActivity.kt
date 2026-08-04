@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shomerapp.alerts.service.AlertForegroundService
@@ -25,17 +26,25 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Keeps the native splash up through the first DataStore read instead of dismissing into
+        // a blank frame — mutated from inside the composable below, read by the system each frame.
+        var keepSplashOn = true
+        splashScreen.setKeepOnScreenCondition { keepSplashOn }
+
         setContent {
             AzakonTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val rootViewModel: RootViewModel = hiltViewModel()
                     val onboardingCompleted by rootViewModel.onboardingCompleted.collectAsStateWithLifecycle()
+                    keepSplashOn = onboardingCompleted == null
                     val context = LocalContext.current
 
                     when (onboardingCompleted) {
-                        null -> Unit // DataStore's first read hasn't landed yet — nothing to show for an instant
+                        null -> Unit // still covered by the native splash — see keepSplashOn above
                         false -> OnboardingScreen(onCompleted = {})
                         true -> {
                             LaunchedEffect(Unit) {

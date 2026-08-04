@@ -23,8 +23,10 @@ class AreaPickerViewModel @Inject constructor(
 
     val allAreas: List<String> = areaRepository.allAreas()
 
-    private val _selected = MutableStateFlow<Set<String>>(emptySet())
-    val selected: StateFlow<Set<String>> = _selected.asStateFlow()
+    // null = preferences not loaded yet (DataStore read is unavoidably async) — screens must
+    // gate on this instead of treating an empty set as "user has nothing selected".
+    private val _selected = MutableStateFlow<Set<String>?>(null)
+    val selected: StateFlow<Set<String>?> = _selected.asStateFlow()
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -38,6 +40,8 @@ class AreaPickerViewModel @Inject constructor(
 
     fun settlementsFor(area: String): List<String> = areaRepository.settlementsInArea(area)
 
+    fun visibleSettlementsFor(area: String): List<String> = settlementsFor(area).filter { matchesQuery(it) }
+
     fun onQueryChange(query: String) {
         _query.value = query
     }
@@ -50,22 +54,27 @@ class AreaPickerViewModel @Inject constructor(
     }
 
     fun toggleSettlement(settlement: String) {
-        _selected.update { if (settlement in it) it - settlement else it + settlement }
+        _selected.update { (it ?: emptySet()).let { current -> if (settlement in current) current - settlement else current + settlement } }
     }
 
     fun isAreaFullySelected(area: String): Boolean {
         val settlements = settlementsFor(area)
-        return settlements.isNotEmpty() && settlements.all { it in _selected.value }
+        val current = _selected.value ?: emptySet()
+        return settlements.isNotEmpty() && settlements.all { it in current }
     }
 
+    /** Toggles only the settlements currently visible under a search filter, not the whole area. */
     fun toggleArea(area: String) {
-        val settlements = settlementsFor(area).toSet()
-        _selected.update { current -> if (settlements.all { it in current }) current - settlements else current + settlements }
+        val settlements = visibleSettlementsFor(area).toSet()
+        _selected.update { current ->
+            val base = current ?: emptySet()
+            if (settlements.isNotEmpty() && settlements.all { it in base }) base - settlements else base + settlements
+        }
     }
 
     fun save() {
         viewModelScope.launch {
-            appPreferences.setSelectedSettlements(_selected.value)
+            appPreferences.setSelectedSettlements(_selected.value ?: emptySet())
             _saved.value = true
         }
     }

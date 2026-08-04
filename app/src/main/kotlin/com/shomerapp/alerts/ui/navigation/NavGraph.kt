@@ -51,7 +51,9 @@ fun AzakonNavHost() {
             startDestination = Screen.Main.route,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(Screen.Main.route) { MainScreen() }
+            composable(Screen.Main.route) {
+                MainScreen(onNavigateToSettings = { navController.navigate(Screen.Settings.route) })
+            }
             composable(Screen.History.route) { HistoryScreen() }
             composable(Screen.Settings.route) { SettingsScreen() }
         }

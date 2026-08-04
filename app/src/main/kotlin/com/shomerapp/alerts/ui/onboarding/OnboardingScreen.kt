@@ -6,13 +6,19 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -21,35 +27,39 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shomerapp.alerts.R
 import com.shomerapp.alerts.domain.OemInstruction
+import com.shomerapp.alerts.ui.components.StatusIndicator
 import com.shomerapp.alerts.ui.settings.areas.AreaPickerScreen
 import com.shomerapp.alerts.ui.settings.sound.SoundSettingsScreen
 import com.shomerapp.alerts.ui.settings.sound.SoundSettingsViewModel
+import com.shomerapp.alerts.ui.theme.AmberPrimary
+import com.shomerapp.alerts.ui.theme.Spacing
 import com.shomerapp.alerts.ui.theme.StatusActiveGreen
-import com.shomerapp.alerts.ui.theme.StatusInactiveRed
 
 @Composable
 fun OnboardingScreen(modifier: Modifier = Modifier, onCompleted: () -> Unit, viewModel: OnboardingViewModel = hiltViewModel()) {
     val step by viewModel.currentStep.collectAsStateWithLifecycle()
 
-    when (step) {
-        OnboardingStep.WELCOME -> WelcomeStep(onNext = viewModel::next)
-        OnboardingStep.AREAS -> AreaPickerScreen(onSaved = viewModel::next)
-        OnboardingStep.NOTIFICATIONS -> NotificationsStep(onNext = viewModel::next)
-        OnboardingStep.DND -> DndStep(onNext = viewModel::next)
-        OnboardingStep.FULL_SCREEN_INTENT -> FullScreenIntentStep(onNext = viewModel::next)
-        OnboardingStep.BATTERY -> BatteryStep(onNext = viewModel::next)
-        OnboardingStep.OEM -> OemStep(instruction = viewModel.oemInstruction, onNext = viewModel::next)
-        OnboardingStep.SOUND -> SoundStep(onNext = viewModel::next)
-        OnboardingStep.FINISH -> FinishStep(onFinish = { viewModel.finish(); onCompleted() })
+    Crossfade(targetState = step, animationSpec = tween(300), label = "onboarding-step") { current ->
+        when (current) {
+            OnboardingStep.WELCOME -> WelcomeStep(onNext = viewModel::next)
+            OnboardingStep.AREAS -> AreaPickerScreen(onSaved = viewModel::next)
+            OnboardingStep.NOTIFICATIONS -> NotificationsStep(onNext = viewModel::next)
+            OnboardingStep.DND -> DndStep(onNext = viewModel::next)
+            OnboardingStep.FULL_SCREEN_INTENT -> FullScreenIntentStep(onNext = viewModel::next)
+            OnboardingStep.BATTERY -> BatteryStep(onNext = viewModel::next)
+            OnboardingStep.OEM -> OemStep(instruction = viewModel.oemInstruction, onNext = viewModel::next)
+            OnboardingStep.SOUND -> SoundStep(onNext = viewModel::next)
+            OnboardingStep.FINISH -> FinishStep(onFinish = { viewModel.finish(); onCompleted() })
+        }
     }
 }
 
@@ -63,10 +73,10 @@ private fun StepScaffold(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(Spacing.screen),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.itemGap)) {
             Text(text = title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
             explanation?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
             content()
@@ -77,13 +87,28 @@ private fun StepScaffold(
 
 @Composable
 private fun WelcomeStep(onNext: () -> Unit) {
-    StepScaffold(
-        title = stringResource(R.string.onboarding_welcome_title),
-        explanation = stringResource(R.string.onboarding_welcome_disclaimer),
-        nextButton = {
-            Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_next_button)) }
-        },
-    )
+    Column(
+        modifier = Modifier.fillMaxSize().padding(Spacing.screen),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.itemGap)) {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.headlineLarge,
+                color = AmberPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = stringResource(R.string.onboarding_welcome_title),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(text = stringResource(R.string.onboarding_welcome_disclaimer), style = MaterialTheme.typography.bodyLarge)
+        }
+        Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_next_button)) }
+    }
 }
 
 @Composable
@@ -100,7 +125,7 @@ private fun NotificationsStep(onNext: () -> Unit) {
         explanation = stringResource(R.string.onboarding_notifications_explain),
         content = { PermissionStatusRow(granted) },
         nextButton = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
                 if (!granted) {
                     Button(
                         onClick = {
@@ -135,7 +160,7 @@ private fun DndStep(onNext: () -> Unit) {
         explanation = stringResource(R.string.onboarding_dnd_explain),
         content = { PermissionStatusRow(granted) },
         nextButton = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
                 if (!granted) {
                     OutlinedButton(
                         onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) },
@@ -158,7 +183,7 @@ private fun FullScreenIntentStep(onNext: () -> Unit) {
         explanation = stringResource(R.string.onboarding_fsi_explain),
         content = { PermissionStatusRow(granted) },
         nextButton = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
                 if (!granted && Build.VERSION.SDK_INT >= 34) {
                     OutlinedButton(
                         onClick = {
@@ -186,7 +211,7 @@ private fun BatteryStep(onNext: () -> Unit) {
         explanation = stringResource(R.string.onboarding_battery_explain),
         content = { PermissionStatusRow(granted) },
         nextButton = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
                 if (!granted) {
                     Button(
                         onClick = {
@@ -212,7 +237,14 @@ private fun OemStep(instruction: OemInstruction?, onNext: () -> Unit) {
     StepScaffold(
         title = stringResource(R.string.onboarding_oem_title, instruction?.manufacturerLabel.orEmpty()),
         content = {
-            instruction?.steps?.forEach { step -> Text(text = "• $step", style = MaterialTheme.typography.bodyLarge) }
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
+                instruction?.steps?.forEach { step ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.iconGap), verticalAlignment = Alignment.Top) {
+                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = StatusActiveGreen)
+                        Text(text = step, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
         },
         nextButton = {
             Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_next_button)) }
@@ -235,7 +267,7 @@ private fun SoundStep(onNext: () -> Unit) {
         // than needing an "attempted" escape hatch.
         Button(
             onClick = onNext,
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(Spacing.cardInner),
             enabled = immediateConfirmed && prewarningConfirmed,
         ) {
             Text(stringResource(R.string.onboarding_next_button))
@@ -256,9 +288,10 @@ private fun FinishStep(onFinish: () -> Unit) {
 
 @Composable
 private fun PermissionStatusRow(granted: Boolean) {
-    Text(
-        text = stringResource(if (granted) R.string.onboarding_permission_granted else R.string.onboarding_permission_denied),
-        color = if (granted) StatusActiveGreen else StatusInactiveRed,
+    StatusIndicator(
+        active = granted,
+        activeLabel = stringResource(R.string.onboarding_permission_granted),
+        inactiveLabel = stringResource(R.string.onboarding_permission_denied),
         style = MaterialTheme.typography.titleLarge,
     )
 }

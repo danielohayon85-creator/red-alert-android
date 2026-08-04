@@ -12,35 +12,39 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.shomerapp.alerts.R
+import com.shomerapp.alerts.ui.components.StatusIndicator
 import com.shomerapp.alerts.ui.onboarding.PermissionChecks
-import com.shomerapp.alerts.ui.theme.StatusActiveGreen
-import com.shomerapp.alerts.ui.theme.StatusInactiveRed
+import com.shomerapp.alerts.ui.theme.Spacing
 
-private data class DiagnosticRow(val label: String, val granted: Boolean, val ifDenied: String)
+private data class DiagnosticRow(val labelRes: Int, val granted: Boolean, val ifDeniedRes: Int)
 
 /** §7.1.H: reports honestly what's on/off and what breaks without it — never blocks the app. */
 @Composable
 fun DiagnosticsScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val rows = listOf(
-        DiagnosticRow("הרשאת מסך מלא (FSI)", PermissionChecks.fullScreenIntentGranted(context), "המסך לא ייפתח אוטומטית על מסך נעול — אבל הצליל המלא + heads-up עדיין יעבדו"),
-        DiagnosticRow("גישה ל\"נא לא להפריע\"", PermissionChecks.dndAccessGranted(context), "הצליל המלא עדיין יעבוד, אבל לא יעקוף את מצב \"נא לא להפריע\""),
-        DiagnosticRow("פטור מאופטימיזציית סוללה", PermissionChecks.batteryOptimizationExempted(context), "הכול עובד בטווח קצר, אבל השירות עלול להיהרג אחרי כמה שעות"),
-        DiagnosticRow("הרשאת התראות", PermissionChecks.notificationsGranted(context), "אין התראה ויזואלית ואין שירות רקע תקין"),
+        DiagnosticRow(R.string.diagnostics_fsi_label, PermissionChecks.fullScreenIntentGranted(context), R.string.diagnostics_fsi_denied),
+        DiagnosticRow(R.string.diagnostics_dnd_label, PermissionChecks.dndAccessGranted(context), R.string.diagnostics_dnd_denied),
+        DiagnosticRow(R.string.diagnostics_battery_label, PermissionChecks.batteryOptimizationExempted(context), R.string.diagnostics_battery_denied),
+        DiagnosticRow(R.string.diagnostics_notifications_label, PermissionChecks.notificationsGranted(context), R.string.diagnostics_notifications_denied),
     )
 
-    Column(modifier = modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(Spacing.cardInner), verticalArrangement = Arrangement.spacedBy(Spacing.itemGap)) {
         rows.forEach { row ->
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(text = row.label, style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        text = if (row.granted) "✅ פעיל" else "❌ לא פעיל",
-                        color = if (row.granted) StatusActiveGreen else StatusInactiveRed,
+                Column(modifier = Modifier.padding(Spacing.cardInner), verticalArrangement = Arrangement.spacedBy(Spacing.rowGap)) {
+                    Text(text = stringResource(row.labelRes), style = MaterialTheme.typography.titleLarge)
+                    StatusIndicator(
+                        active = row.granted,
+                        activeLabel = stringResource(R.string.status_active),
+                        inactiveLabel = stringResource(R.string.status_inactive),
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                     if (!row.granted) {
-                        Text(text = row.ifDenied, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = stringResource(row.ifDeniedRes), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }

@@ -15,8 +15,11 @@ val OnAmberPrimary = Color(0xFF201400)
 // Status semantics — reused across status card, alert screens, history rows.
 // Deliberately distinct from the official Home Front Command visual identity (§7.1.D).
 val StatusActiveGreen = Color(0xFF3DDC84)
-val StatusConnectingAmber = Color(0xFFF5A623)
+// Deliberately NOT AmberPrimary — that color means "tap me" on every button app-wide;
+// reusing it here would make a passive network-status word look like an interactive control.
+val StatusConnectingBlue = Color(0xFF5B9CF5)
 val StatusInactiveRed = Color(0xFFE5484D)
+val StatusAdvisoryAmber = Color(0xFFC77800)
 
 val AlertImmediateRed = Color(0xFFB3261E)
 val AlertPrewarningAmber = Color(0xFFC77800)

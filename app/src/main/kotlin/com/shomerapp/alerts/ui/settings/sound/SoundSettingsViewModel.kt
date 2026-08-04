@@ -9,7 +9,10 @@ import com.shomerapp.alerts.data.local.SoundPreferences
 import com.shomerapp.alerts.domain.AlertSimulator
 import com.shomerapp.alerts.domain.model.AlertKind
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -34,8 +37,20 @@ class SoundSettingsViewModel @Inject constructor(
     fun confirmImmediateTested() = viewModelScope.launch { soundPreferences.confirmImmediateSoundTested() }
     fun confirmPrewarningTested() = viewModelScope.launch { soundPreferences.confirmPrewarningSoundTested() }
 
-    fun previewSound(uri: Uri) = previewPlayer.play(uri)
-    fun stopPreview() = previewPlayer.stop()
+    // Lives here, not per-card local state — both sound cards share this one player singleton, so
+    // starting a preview on one card must visually stop the other's "playing" indicator too.
+    private val _previewingUri = MutableStateFlow<Uri?>(null)
+    val previewingUri: StateFlow<Uri?> = _previewingUri.asStateFlow()
+
+    fun previewSound(uri: Uri) {
+        _previewingUri.value = uri
+        previewPlayer.play(uri)
+    }
+
+    fun stopPreview() {
+        _previewingUri.value = null
+        previewPlayer.stop()
+    }
 
     override fun onCleared() {
         previewPlayer.stop()

@@ -218,7 +218,7 @@ private fun ClearedScreen(session: AlertSessionState.Cleared, onAcknowledge: () 
 @Composable
 private fun DrillBanner() {
     Text(
-        text = stringResource(R.string.alert_drill_banner),
+        text = stringResource(R.string.drill_disclaimer),
         style = MaterialTheme.typography.titleLarge,
         color = Color.Black,
         modifier = Modifier

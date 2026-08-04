@@ -11,4 +11,13 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
     </style>
+
+    <!-- Cold-start splash (androidx.core.splashscreen): covers both the pre-Compose OS window
+         and, via MainActivity's setKeepOnScreenCondition, the moment while the first DataStore
+         read (onboardingCompleted) is still in flight — so there's never a blank frame. -->
+    <style name="Theme.Azakon.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#0B0F14</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Azakon</item>
+    </style>
 </resources>
