@@ -63,7 +63,7 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 | **מנגנון חתימה** (build.gradle.kts + workflow) | ✅ מוכן ומחובר — קורא credentials מקובץ מקומי או מ-CI secrets |
 | **ה-keystore בפועל + הסיסמאות** | ❌ **לא נוצר בכוונה** — זה שלך ליצור ולשמור; ר' למטה |
 | מזהי AdMob אמיתיים (במקום מזהי הבדיקה של גוגל) | ❌ דורש חשבון AdMob שלך |
-| אייקון אפליקציה מעוצב | ❌ עדיין placeholder (פעמון פשוט) |
+| אייקון אפליקציה | ✅ הוחלף מ-placeholder לאייקון וקטורי מעוצב (ר' סעיף למטה) — לא עבר בדיקת עיצוב מקצועית |
 | בדיקה על מכשיר/emulator אמיתי | ❌ לא בוצעה בשום שלב |
 | חשבון Google Play Console + הגשה בפועל | ❌ לא בוצע |
 
@@ -90,6 +90,12 @@ cp keystore.properties.example keystore.properties
 1. קודד את הקובץ: `base64 -i azakon-release.jks | pbcopy` (מק) או `base64 -w0 azakon-release.jks` (לינוקס).
 2. ברפו: **Settings → Secrets and variables → Actions → New repository secret**, הוסף ארבעה: `KEYSTORE_BASE64` (התוכן המקודד), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 3. זהו — ה-workflow כבר בודק אם `KEYSTORE_BASE64` קיים ומחתים אוטומטית; בלי הסודות האלה הוא ממשיך לבנות unsigned בדיוק כמו היום, בלי לשבור כלום.
+
+### אייקון האפליקציה
+
+הוחלף ה-placeholder (פעמון פשוט) באייקון וקטורי מעוצב: תג התרעה עגול בצבע הענבר של האפליקציה (`#F5A623`, זהה ל-`AmberPrimary` בערכת הנושא) עם סימן קריאה כהה במרכז ושני קשתות "גלי קול" בצדדים — על רקע כהה תואם (`#0B0F14`, זהה ל-`BackgroundDark`). וקטור בלבד (`ic_launcher_foreground.xml`/`ic_launcher_background.xml`), לא PNG, כך שהוא חד בכל צפיפות מסך. **זה עדיין לא עיצוב מקצועי** (לא עבר בדיקת גרפיקאי/A-B), אבל הוא כבר לא placeholder גנרי — סמל אזעקה מזוהה, שונה במכוון מהסמל הרשמי של פיקוד העורף (§7.1.D).
+
+תוך כדי כך תוקן גם **באג אמיתי**: שלוש נקודות ה-`setSmallIcon()` בהתראות (`ServiceNotifications.kt`, `AlertNotifications.kt`) השתמשו קודם ב-`ic_launcher_foreground` הרב-צבעוני — אבל אנדרואיד (API 21+) מרנדר אייקון small-icon של התראה כמסכת אלפא חד-צבעית בלבד (מתעלם מ-RGB בפועל), כך שאייקון עם כמה צורות אטומות היה מתמזג לכתם לבן אחיד בלי פרטים. נוסף `ic_notification.xml` — סילואטת פעמון פשוטה, מיועדת בדיוק לשימוש הזה — ושלוש נקודות ה-`setSmallIcon()` עודכנו להשתמש בו.
 
 ## החלטות ארכיטקטוניות וסטיות מהמפרט המקורי
 

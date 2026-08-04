@@ -4,23 +4,28 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Placeholder bell glyph — replace with final brand icon before release.
-         Deliberately not the Home Front Command emblem or color scheme (§7.1.D). -->
+    <!-- Alert badge glyph (exclamation mark + radiating sound-wave arcs), deliberately not the
+         Home Front Command emblem or color scheme (§7.1.D). All content stays inside the 66dp
+         adaptive-icon safe zone (radius 33 around 54,54). -->
     <path
         android:fillColor="#F5A623"
-        android:pathData="M54,34
-            C44,34 37,41 37,51
-            L37,62
-            L31,72
-            L77,72
-            L71,62
-            L71,51
-            C71,41 64,34 54,34
-            Z" />
+        android:pathData="M32,54 A22,22 0 1,0 76,54 A22,22 0 1,0 32,54 Z" />
     <path
-        android:fillColor="#F5A623"
-        android:pathData="M46,76
-            C46,81.5 49.6,85 54,85
-            C58.4,85 62,81.5 62,76
-            Z" />
+        android:fillColor="#0B0F14"
+        android:pathData="M50.8,40 L57.2,40 L57.2,57 L50.8,57 Z" />
+    <path
+        android:fillColor="#0B0F14"
+        android:pathData="M54,63 m-3.4,0 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0" />
+    <path
+        android:strokeColor="#F5A623"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M80,39 A30,30 0 0,1 80,69" />
+    <path
+        android:strokeColor="#F5A623"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M28,69 A30,30 0 0,1 28,39" />
 </vector>

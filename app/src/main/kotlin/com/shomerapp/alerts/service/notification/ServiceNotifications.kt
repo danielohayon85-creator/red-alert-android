@@ -60,7 +60,7 @@ object ServiceNotifications {
         }
 
         return NotificationCompat.Builder(context, STATUS_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notification_status_title))
             .setContentText(contentText)
             .setOngoing(true)
@@ -71,7 +71,7 @@ object ServiceNotifications {
 
     fun buildConnectionLostNotification(context: Context): Notification =
         NotificationCompat.Builder(context, CONNECTION_LOST_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notification_connection_lost_title))
             .setContentText(context.getString(R.string.notification_connection_lost_text))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
