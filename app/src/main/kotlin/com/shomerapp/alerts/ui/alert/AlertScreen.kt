@@ -1,5 +1,7 @@
 package com.shomerapp.alerts.ui.alert
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,13 +36,17 @@ private const val CLEARED_AUTO_DISMISS_MS = 15_000L
 
 @Composable
 fun AlertScreen(uiState: AlertUiState, onConfirmSafe: () -> Unit, onAcknowledge: () -> Unit) {
-    when (val session = uiState.session) {
-        is AlertSessionState.Prewarning -> PrewarningScreen(session, uiState.nowMillis)
-        is AlertSessionState.PrewarningExpired -> PrewarningExpiredScreen(session, onAcknowledge)
-        is AlertSessionState.Immediate -> ImmediateScreen(session, uiState.nowMillis, onConfirmSafe)
-        is AlertSessionState.WaitingForAllClear -> WaitingForAllClearScreen(session)
-        is AlertSessionState.Cleared -> ClearedScreen(session, onAcknowledge)
-        AlertSessionState.Idle -> Unit // AlertActivity finishes itself when it observes Idle
+    // Keyed on the phase (class), not the whole state — a growing settlement list or the
+    // per-second countdown tick must update in place, not re-trigger a crossfade every time.
+    Crossfade(targetState = uiState.session::class, label = "alert-screen-phase", animationSpec = tween(300)) {
+        when (val session = uiState.session) {
+            is AlertSessionState.Prewarning -> PrewarningScreen(session, uiState.nowMillis)
+            is AlertSessionState.PrewarningExpired -> PrewarningExpiredScreen(session, onAcknowledge)
+            is AlertSessionState.Immediate -> ImmediateScreen(session, uiState.nowMillis, onConfirmSafe)
+            is AlertSessionState.WaitingForAllClear -> WaitingForAllClearScreen(session)
+            is AlertSessionState.Cleared -> ClearedScreen(session, onAcknowledge)
+            AlertSessionState.Idle -> Unit // AlertActivity finishes itself when it observes Idle
+        }
     }
 }
 

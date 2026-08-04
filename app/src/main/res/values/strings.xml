@@ -13,10 +13,8 @@
     <string name="nav_history">היסטוריה</string>
     <string name="nav_settings">הגדרות</string>
 
-    <!-- Placeholders wired up in later stages -->
-    <string name="onboarding_placeholder">אונבורדינג ייבנה בשלב 6</string>
-    <string name="history_placeholder">היסטוריית התרעות תיבנה בשלב 5–7</string>
-    <string name="settings_placeholder">מסכי הגדרות ייבנו בשלב 6</string>
+    <!-- History empty state -->
+    <string name="history_placeholder">אין עדיין היסטוריית התרעות</string>
 
     <!-- Foreground service notifications -->
     <string name="notification_channel_status_name">סטטוס הגנה</string>

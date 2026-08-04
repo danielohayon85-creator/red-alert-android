@@ -6,7 +6,7 @@
 
 ## סטטוס נוכחי
 
-בפיתוח לפי מפרט הפרויקט, בשלבים. **שלבים 1–6 הושלמו**, שלב 7 עדיין לא.
+בפיתוח לפי מפרט הפרויקט, בשלבים. **כל 7 השלבים הושלמו** ברמת קוד — **טרם נבנה/נבדק על מכשיר אמיתי**, ר' "הערה חשובה" למטה.
 
 | שלב | תיאור | סטטוס |
 |---|---|---|
@@ -16,7 +16,7 @@
 | 4 | מנוע אודיו: MediaPlayer, TTS, רטט, בחירת צליל | ✅ הושלם |
 | 5 | מסך התרעה + מכונת מצבים (PREWARNING→IMMEDIATE→ALL_CLEAR) | ✅ הושלם |
 | 6 | הגדרות ואונבורדינג | ✅ הושלם |
-| 7 | ליטוש, נגישות, תיעוד Play | ⏳ טרם |
+| 7 | ליטוש, נגישות, תיעוד Play | ✅ הושלם |
 
 ## Stack
 
@@ -92,6 +92,11 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 
 ## מבנה הפרויקט
 
-ראו `app/src/main/kotlin/com/shomerapp/alerts/` — חלוקה לפי `data/` (יתמלא בשלב 2), `domain/`, `service/`, `audio/` (שלב 4), `receiver/`, `ui/` (theme, navigation, main, history, settings, alert, onboarding, ads, debug).
+ראו `app/src/main/kotlin/com/shomerapp/alerts/` — חלוקה לפי `data/`, `domain/`, `service/`, `audio/`, `receiver/`, `work/`, `ui/` (theme, navigation, main, history, settings, alert, onboarding, debug, ads).
 
-מחלקות `AlertActivity`, `AlertForegroundService`, `BootReceiver` קיימות כרגע כ-stubs ריקים — רק כדי שה-manifest יתקמפל; המימוש המלא שלהן מגיע בשלבים 3 ו-5.
+## שלב 7 — הערות
+
+- **אנימציה**: `AlertScreen` עטוף ב-`Crossfade` בין שלבי ההתרעה (Prewarning/Immediate/WaitingForAllClear/Cleared), עם מפתח לפי **סוג המצב** ולא שוויון מלא — כדי שרשימת יישובים גדלה או טיק שנייתי בטיימר לא יגרמו לפייד מיותר, רק מעבר אמיתי בין שלבים.
+- **נגישות**: נבדקו ידנית כל שימושי `Icon(...)` בקוד — היחיד (סרגל הניווט התחתון) כבר משתמש ב-`contentDescription = null` בכוונה, כי לכל אייקון יש `label` טקסטואלי צמוד ש-TalkBack קורא ממילא (הימנעות מהכרזה כפולה). לא נמצאו מקומות שמסתמכים על צבע בלבד להעברת מידע (סטטוס/ספירה לאחור תמיד מלווים בטקסט). **לא נבדק בפועל** עם TalkBack/ניגודיות/הגדלת גופן על מכשיר — נדרשת בדיקה ידנית לפני release, כפי שהמפרט דורש (§11 בדיקות תאימות).
+- **`PLAY_DECLARATIONS.md` נוסף** — טיוטת נוסח הצדקת `specialUse`, תסריט סרטון הדגמה, הצהרת FSI, תיאור חנות עם הדיסקליימר בפתיחה, עדכון Data Safety בעקבות הוספת AdMob, והצדקת תדירות הרשת. **טיוטה בלבד, לא הוגשה בפועל**.
+- **מה עדיין לא קיים בכלל** (מעבר לפערי scope-trim שכבר תועדו בשלבים 4/6): בדיקות אינסטרומנטציה (Espresso/Compose UI tests) על מכשיר אמיתי, בדיקת Android 14/15/16 בפועל, בדיקת שני מצבי FSI (מאושר/דחוי) בפועל, ואייקון אפליקציה סופי (הנוכחי הוא placeholder פשוט — פעמון על רקע כהה, לא עוצב מקצועית).
