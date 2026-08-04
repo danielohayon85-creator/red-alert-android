@@ -121,6 +121,7 @@ dependencies {
     ksp(libs.hilt.compiler.work)
 
     implementation(libs.play.services.ads)
+    implementation(libs.play.services.location)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

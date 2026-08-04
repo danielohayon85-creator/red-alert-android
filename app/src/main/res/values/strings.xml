@@ -105,7 +105,19 @@
     <string name="settings_areas_item">אזורים ויישובים</string>
     <string name="settings_sound_item">צלילי התרעה</string>
     <string name="settings_diagnostics_item">אבחון הרשאות</string>
+    <string name="settings_location_item">מיקום אוטומטי</string>
     <string name="settings_back">חזרה</string>
+
+    <!-- Location auto-detection (opt-in, off by default) -->
+    <string name="location_title">מיקום אוטומטי</string>
+    <string name="location_explain">כשמופעל, האפליקציה בודקת מדי כ-20 דקות באיזה יישוב אתה נמצא ומוסיפה אותו אוטומטית לרשימת ההתרעות שלך — בנוסף לאזורים שבחרת ידנית, לא במקומם. זה דורש הרשאת מיקום, כולל ברקע (גם כשהאפליקציה סגורה), כדי שההתרעות ימשיכו להתאים למיקום שלך גם אם לא פתחת את האפליקציה.</string>
+    <string name="location_toggle_label">עדכן אזור אוטומטית לפי המיקום שלי</string>
+    <string name="location_foreground_label">הרשאת מיקום</string>
+    <string name="location_background_label">הרשאת מיקום ברקע</string>
+    <string name="location_background_explain">בלי זה, המיקום ייבדק רק כשהאפליקציה פתוחה על המסך — לא באמת "אוטומטי". אנדרואיד עשוי להפנות אותך להגדרות המערכת ולבחור \"אפשר תמיד\".</string>
+    <string name="location_request_button">בקש הרשאה</string>
+    <string name="location_current_settlement">זוהה כרגע: %1$s</string>
+    <string name="location_none_detected">עדיין לא זוהה מיקום</string>
 
     <!-- Diagnostics -->
     <string name="diagnostics_fsi_label">הרשאת מסך מלא (FSI)</string>

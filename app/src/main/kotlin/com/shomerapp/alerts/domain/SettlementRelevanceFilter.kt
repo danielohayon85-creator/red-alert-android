@@ -18,7 +18,9 @@ class SettlementRelevanceFilter @Inject constructor(
     private val areaRepository: AreaRepository,
 ) {
     suspend fun filterRelevant(outcome: PollOutcome.AlertUpdate): PollOutcome.AlertUpdate? {
-        val selected = appPreferences.selectedSettlements.first()
+        // Auto-detected (opt-in location feature, off by default) is additive to the manual
+        // picks, never a replacement — AppPreferences.setAutoLocationEnabled(false) clears it.
+        val selected = appPreferences.selectedSettlements.first() + listOfNotNull(appPreferences.autoDetectedSettlement.first())
         // Defensive: onboarding requires picking at least one settlement, but if this ever runs
         // before that's true (e.g. Debug Panel injection pre-onboarding), don't silently eat
         // every alert — treat "nothing configured" as "everything is relevant" instead.

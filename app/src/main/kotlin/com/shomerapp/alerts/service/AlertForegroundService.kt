@@ -7,14 +7,18 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.shomerapp.alerts.data.connectivity.ConnectivityObserver
+import com.shomerapp.alerts.data.local.AppPreferences
+import com.shomerapp.alerts.data.location.LocationTracker
 import com.shomerapp.alerts.data.remote.AlertFetcherSwitch
 import com.shomerapp.alerts.data.repository.OrefPollingRepository
 import com.shomerapp.alerts.data.repository.PollOutcome
 import com.shomerapp.alerts.domain.AlertSessionManager
+import com.shomerapp.alerts.domain.LocationSettlementMatcher
 import com.shomerapp.alerts.domain.ServiceHealthTracker
 import com.shomerapp.alerts.domain.SettlementRelevanceFilter
 import com.shomerapp.alerts.service.notification.ServiceNotifications
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,6 +38,9 @@ class AlertForegroundService : LifecycleService() {
     @Inject lateinit var sessionManager: AlertSessionManager
     @Inject lateinit var relevanceFilter: SettlementRelevanceFilter
     @Inject lateinit var fetcherSwitch: AlertFetcherSwitch
+    @Inject lateinit var appPreferences: AppPreferences
+    @Inject lateinit var locationTracker: LocationTracker
+    @Inject lateinit var locationMatcher: LocationSettlementMatcher
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -44,6 +51,7 @@ class AlertForegroundService : LifecycleService() {
         acquireWakeLock()
         lifecycleScope.launch { sessionManager.restoreFromDatabase() } // §10 crash-recovery
         observeConnectivityAndPoll()
+        observeAutoLocation()
     }
 
     override fun onDestroy() {
@@ -96,6 +104,29 @@ class AlertForegroundService : LifecycleService() {
         updateStatusNotification()
     }
 
+    /** Opt-in, off by default (README "מיקום אוטומטי") — collectLatest means flipping the
+     *  preference off cancels this loop immediately, and back on restarts it fresh, same idiom
+     *  as [observeConnectivityAndPoll]. A resolve failure (permission revoked mid-loop, no fix,
+     *  no geocoder match) is silently skipped and retried next tick — never crashes the service. */
+    private fun observeAutoLocation() {
+        lifecycleScope.launch {
+            appPreferences.autoLocationEnabled.collectLatest { enabled ->
+                if (!enabled) return@collectLatest
+                while (true) {
+                    runCatching {
+                        locationTracker.currentLocation()?.let { location ->
+                            val candidates = locationTracker.placeNameCandidates(location)
+                            locationMatcher.bestMatch(candidates)?.let { settlement ->
+                                appPreferences.setAutoDetectedSettlement(settlement)
+                            }
+                        }
+                    }
+                    delay(LOCATION_CHECK_INTERVAL_MS)
+                }
+            }
+        }
+    }
+
     private fun updateStatusNotification() {
         if (!ServiceNotifications.hasNotificationPermission(this)) return
         val health = healthTracker.health.value
@@ -117,5 +148,6 @@ class AlertForegroundService : LifecycleService() {
 
     private companion object {
         const val WAKE_LOCK_TIMEOUT_MS = 15 * 60 * 1000L // renewed on every poll tick; only lapses if polling itself has stopped ticking
+        const val LOCATION_CHECK_INTERVAL_MS = 20 * 60 * 1000L // battery-conscious — "which settlement" doesn't need to be real-time
     }
 }

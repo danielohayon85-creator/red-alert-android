@@ -13,6 +13,13 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Opt-in feature (§ README "מיקום אוטומטי", off by default): auto-detects the settlement the
+         user is currently in so alerts follow them, instead of only their manually picked list.
+         ACCESS_BACKGROUND_LOCATION requires Google Play's separate policy declaration + prominent
+         in-app disclosure before requesting it — see PLAY_DECLARATIONS.md. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:name=".ShomerApplication"

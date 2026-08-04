@@ -35,4 +35,6 @@ class AreaRepository(areasJson: String, json: Json = Json { ignoreUnknownKeys = 
     fun allAreas(): List<String> = settlementsByArea.keys.sorted()
 
     fun settlementsInArea(area: String): List<String> = settlementsByArea[area].orEmpty()
+
+    fun allSettlements(): List<String> = settlementsByArea.values.flatten().distinct()
 }

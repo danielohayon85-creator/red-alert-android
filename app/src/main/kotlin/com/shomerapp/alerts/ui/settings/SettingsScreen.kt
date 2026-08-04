@@ -37,12 +37,13 @@ import com.shomerapp.alerts.R
 import com.shomerapp.alerts.ui.ads.BannerAdView
 import com.shomerapp.alerts.ui.debug.DebugPanelScreen
 import com.shomerapp.alerts.ui.settings.areas.AreaPickerScreen
+import com.shomerapp.alerts.ui.settings.location.LocationSettingsScreen
 import com.shomerapp.alerts.ui.settings.sound.SoundSettingsScreen
 import com.shomerapp.alerts.ui.theme.Spacing
 
 private const val DEBUG_PANEL_TAP_THRESHOLD = 5
 
-private enum class SettingsDestination { MENU, AREAS, SOUND, DIAGNOSTICS, DEBUG }
+private enum class SettingsDestination { MENU, AREAS, SOUND, DIAGNOSTICS, LOCATION, DEBUG }
 
 /** §10: the Debug Panel is reached via 5 taps on the app name/logo — hidden from ordinary use. */
 @Composable
@@ -75,6 +76,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 SettingsMenuItem(stringResource(R.string.settings_areas_item)) { destination = SettingsDestination.AREAS }
                 SettingsMenuItem(stringResource(R.string.settings_sound_item)) { destination = SettingsDestination.SOUND }
                 SettingsMenuItem(stringResource(R.string.settings_diagnostics_item)) { destination = SettingsDestination.DIAGNOSTICS }
+                SettingsMenuItem(stringResource(R.string.settings_location_item)) { destination = SettingsDestination.LOCATION }
                 if (debugUnlocked) {
                     SettingsMenuItem(stringResource(R.string.debug_panel_title)) { destination = SettingsDestination.DEBUG }
                 }
@@ -92,6 +94,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
             SettingsDestination.DIAGNOSTICS -> WithBackButton(onBack = { destination = SettingsDestination.MENU }) {
                 DiagnosticsScreen()
+            }
+
+            SettingsDestination.LOCATION -> WithBackButton(onBack = { destination = SettingsDestination.MENU }) {
+                LocationSettingsScreen()
             }
 
             SettingsDestination.DEBUG -> WithBackButton(onBack = { destination = SettingsDestination.MENU }) {
