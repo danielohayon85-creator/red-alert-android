@@ -23,15 +23,10 @@
         android:theme="@style/Theme.Azakon"
         android:usesCleartextTraffic="false">
 
-        <!--
-          AdMob App ID below is Google's public TEST id (safe to ship in debug builds,
-          never generates real revenue or real ad requests). It MUST be replaced with the
-          real AdMob App ID from the developer's own AdMob console before any release build.
-          See README.md "פרסומות" section.
-        -->
+        <!-- Real AdMob App ID from the developer's own AdMob console (README.md "פרסומות"). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-3604227289944192~2342548687" />
 
         <!--
           ShomerApplication implements Configuration.Provider for Hilt+WorkManager on-demand

@@ -62,7 +62,7 @@ Kotlin, Jetpack Compose (Material 3), Hilt, Coroutines/Flow, DataStore, Room, Ok
 | טופס PLAY_DECLARATIONS.md (specialUse, FSI, תיאור חנות, Data Safety) | ✅ טיוטת נוסח קיימת — **לא הוגשה** |
 | **מנגנון חתימה** (build.gradle.kts + workflow) | ✅ מוכן ומחובר — קורא credentials מקובץ מקומי או מ-CI secrets |
 | **ה-keystore בפועל + הסיסמאות** | ❌ **לא נוצר בכוונה** — זה שלך ליצור ולשמור; ר' למטה |
-| מזהי AdMob אמיתיים (במקום מזהי הבדיקה של גוגל) | ❌ דורש חשבון AdMob שלך |
+| מזהי AdMob אמיתיים (במקום מזהי הבדיקה של גוגל) | ✅ הוחלפו — App ID + Ad unit ID מהחשבון האמיתי |
 | אייקון אפליקציה | ✅ הוחלף מ-placeholder לאייקון וקטורי מעוצב (ר' סעיף למטה) — לא עבר בדיקת עיצוב מקצועית |
 | בדיקה על מכשיר/emulator אמיתי | ❌ לא בוצעה בשום שלב |
 | חשבון Google Play Console + הגשה בפועל | ❌ לא בוצע |
@@ -101,7 +101,7 @@ cp keystore.properties.example keystore.properties
 
 - **שם ו-package**: הפרומפט המקורי לא קבע שם. נבחר השם **"אזעקון"** (לפי בקשת המשתמש), ו-`applicationId` = `com.shomerapp.alerts` — כדי לא לרמוז על שיוך רשמי לפיקוד העורף (§7.1.D של המפרט).
 - **פרסומות (סטייה מכוונת מהמפרט)**: המפרט המקורי אסר במפורש הוספת AdMob/SDK צד ג' (§7.1.E), כדי לשמור על טופס Data Safety פשוט ועל 100% פרטיות מקומית. **לבקשת המשתמש הוספו פרסומות באנר (Google AdMob)** במסך הראשי, בהיסטוריה ובהגדרות. הוחלט **שלא** להציג פרסומות במסך ההתרעה (`AlertActivity`) או בשלבי אונבורדינג קריטיים (הרשאות, בדיקת צליל) — פרסומת שם עלולה לעכב אדם מלהיכנס לממ"ד. יש לעדכן בהתאם את טופס ה-Data Safety ב-Play Console (ר' `PLAY_DECLARATIONS.md`, ייכתב בשלב מאוחר): הוספת SDK חיצוני שאוסף Advertising ID.
-  - **`app/src/main/kotlin/.../ui/ads/BannerAdView.kt`** משתמש כרגע במזהי פרסומת בדיקה **פומביים של גוגל** (`ca-app-pub-3940256099942544/...`) — כלומר לא ייווצרו הכנסות אמיתיות. יש להחליף למזהי AdMob אמיתיים (App ID ב-`AndroidManifest.xml` + Ad Unit ID ב-`BannerAdView.kt`) מתוך חשבון AdMob של המפתח לפני release.
+  - **מזהי AdMob אמיתיים כבר משולבים**: App ID ב-`AndroidManifest.xml`, Ad Unit ID ב-`app/src/main/kotlin/.../ui/ads/BannerAdView.kt` — מהחשבון AdMob של המפתח, לא מזהי הבדיקה של גוגל יותר.
 - **Repo נפרד**: הריפו `emergency-system` המקורי הוא פרויקט Flask/Python לא קשור (מערכת ניהול חירום לרשות מקומית) — הפרויקט הזה נוצר כריפו GitHub נפרד (`red-alert-android`) לבקשת המשתמש.
 
 ## שלב 6 — הערות
