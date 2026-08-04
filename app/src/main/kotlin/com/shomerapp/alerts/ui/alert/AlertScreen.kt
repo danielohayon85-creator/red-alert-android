@@ -62,6 +62,7 @@ private fun PrewarningScreen(session: AlertSessionState.Prewarning, nowMillis: L
     val elapsedSeconds = ((nowMillis - session.startedAtEpochMillis) / 1000).coerceAtLeast(0)
     FullBleedColumn(AlertPrewarningAmber) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (session.isDrill) DrillBanner()
             Text(
                 text = stringResource(R.string.alert_prewarning_title),
                 style = MaterialTheme.typography.headlineLarge,
@@ -119,6 +120,7 @@ private fun ImmediateScreen(session: AlertSessionState.Immediate, nowMillis: Lon
 
     FullBleedColumn(AlertImmediateRed) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (session.isDrill) DrillBanner()
             Text(
                 text = session.settlements.lastOrNull().orEmpty(),
                 style = MaterialTheme.typography.displayLarge,
@@ -158,6 +160,7 @@ private fun ImmediateScreen(session: AlertSessionState.Immediate, nowMillis: Lon
 private fun WaitingForAllClearScreen(session: AlertSessionState.WaitingForAllClear) {
     FullBleedColumn(AlertPrewarningAmber) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (session.isDrill) DrillBanner()
             Text(
                 text = stringResource(R.string.alert_waiting_for_all_clear_title),
                 style = MaterialTheme.typography.headlineLarge,
@@ -184,6 +187,7 @@ private fun ClearedScreen(session: AlertSessionState.Cleared, onAcknowledge: () 
     }
     FullBleedColumn(AlertClearGreen) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (session.isDrill) DrillBanner()
             Text(
                 text = stringResource(R.string.alert_cleared_title),
                 style = MaterialTheme.typography.headlineLarge,
@@ -202,6 +206,21 @@ private fun ClearedScreen(session: AlertSessionState.Cleared, onAcknowledge: () 
             Text(text = stringResource(R.string.alert_dismiss_button))
         }
     }
+}
+
+/** §8: a drill must be unmistakable everywhere it's shown — never rely on subtlety here. */
+@Composable
+private fun DrillBanner() {
+    Text(
+        text = stringResource(R.string.alert_drill_banner),
+        style = MaterialTheme.typography.titleLarge,
+        color = Color.Black,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(8.dp),
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable

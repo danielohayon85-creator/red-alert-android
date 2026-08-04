@@ -63,11 +63,13 @@ class AlertSessionManager @Inject constructor(
         // is an accepted gap; see README §5 known simplification.
     }
 
-    fun onPollOutcome(outcome: PollOutcome.AlertUpdate) {
+    /** [isDrill] is true when this outcome came from the Debug Panel / "simulate full alert"
+     *  mock fetcher rather than the real oref endpoint — must reach the screen (§8). */
+    fun onPollOutcome(outcome: PollOutcome.AlertUpdate, isDrill: Boolean = false) {
         val now = System.currentTimeMillis()
         val event = when (outcome.alert.kind) {
-            AlertKind.PREWARNING -> AlertSessionEvent.PrewarningReceived(outcome.alert.cities, outcome.alert.title, outcome.alert.desc, now)
-            AlertKind.IMMEDIATE -> AlertSessionEvent.ImmediateReceived(outcome.alert.cities, outcome.alert.title, outcome.alert.desc, outcome.alert.durationSeconds, now)
+            AlertKind.PREWARNING -> AlertSessionEvent.PrewarningReceived(outcome.alert.cities, outcome.alert.title, outcome.alert.desc, now, isDrill)
+            AlertKind.IMMEDIATE -> AlertSessionEvent.ImmediateReceived(outcome.alert.cities, outcome.alert.title, outcome.alert.desc, outcome.alert.durationSeconds, now, isDrill)
             AlertKind.ALL_CLEAR -> AlertSessionEvent.AllClearReceived(outcome.alert.cities, now)
             AlertKind.INFO -> return // plain notification, not part of the full-screen session
         }
@@ -197,19 +199,19 @@ class AlertSessionManager @Inject constructor(
 private fun AlertSessionState.toEntity(): AlertSessionEntity = when (this) {
     is AlertSessionState.Prewarning -> AlertSessionEntity(
         phase = "PREWARNING", startedAtEpochMillis = startedAtEpochMillis, prewarningStartedAtEpochMillis = null,
-        settlementsCsv = settlements.joinToString(","), title = title, desc = desc, durationSeconds = 0, acknowledgedByUser = false,
+        settlementsCsv = settlements.joinToString(","), title = title, desc = desc, durationSeconds = 0, acknowledgedByUser = false, isDrill = isDrill,
     )
     is AlertSessionState.Immediate -> AlertSessionEntity(
         phase = "IMMEDIATE", startedAtEpochMillis = startedAtEpochMillis, prewarningStartedAtEpochMillis = prewarningStartedAtEpochMillis,
-        settlementsCsv = settlements.joinToString(","), title = title, desc = desc, durationSeconds = durationSeconds, acknowledgedByUser = acknowledgedByUser,
+        settlementsCsv = settlements.joinToString(","), title = title, desc = desc, durationSeconds = durationSeconds, acknowledgedByUser = acknowledgedByUser, isDrill = isDrill,
     )
     is AlertSessionState.WaitingForAllClear -> AlertSessionEntity(
         phase = "WAITING_FOR_ALL_CLEAR", startedAtEpochMillis = startedAtEpochMillis, prewarningStartedAtEpochMillis = null,
-        settlementsCsv = settlements.joinToString(","), title = title, desc = "", durationSeconds = 0, acknowledgedByUser = false,
+        settlementsCsv = settlements.joinToString(","), title = title, desc = "", durationSeconds = 0, acknowledgedByUser = false, isDrill = isDrill,
     )
     is AlertSessionState.Cleared -> AlertSessionEntity(
         phase = "CLEARED", startedAtEpochMillis = 0, prewarningStartedAtEpochMillis = null,
-        settlementsCsv = settlements.joinToString(","), title = "", desc = "", durationSeconds = 0, acknowledgedByUser = false,
+        settlementsCsv = settlements.joinToString(","), title = "", desc = "", durationSeconds = 0, acknowledgedByUser = false, isDrill = isDrill,
     )
     is AlertSessionState.PrewarningExpired -> AlertSessionEntity(
         phase = "PREWARNING_EXPIRED", startedAtEpochMillis = 0, prewarningStartedAtEpochMillis = null,
@@ -224,10 +226,10 @@ private fun AlertSessionState.toEntity(): AlertSessionEntity = when (this) {
 private fun AlertSessionEntity.toState(): AlertSessionState {
     val settlements = settlementsCsv.split(",").filter { it.isNotBlank() }
     return when (phase) {
-        "PREWARNING" -> AlertSessionState.Prewarning(startedAtEpochMillis, settlements, title, desc)
-        "IMMEDIATE" -> AlertSessionState.Immediate(startedAtEpochMillis, prewarningStartedAtEpochMillis, settlements, title, desc, durationSeconds, acknowledgedByUser)
-        "WAITING_FOR_ALL_CLEAR" -> AlertSessionState.WaitingForAllClear(startedAtEpochMillis, settlements, title)
-        "CLEARED" -> AlertSessionState.Cleared(settlements)
+        "PREWARNING" -> AlertSessionState.Prewarning(startedAtEpochMillis, settlements, title, desc, isDrill)
+        "IMMEDIATE" -> AlertSessionState.Immediate(startedAtEpochMillis, prewarningStartedAtEpochMillis, settlements, title, desc, durationSeconds, acknowledgedByUser, isDrill)
+        "WAITING_FOR_ALL_CLEAR" -> AlertSessionState.WaitingForAllClear(startedAtEpochMillis, settlements, title, isDrill)
+        "CLEARED" -> AlertSessionState.Cleared(settlements, isDrill)
         "PREWARNING_EXPIRED" -> AlertSessionState.PrewarningExpired(settlements)
         else -> AlertSessionState.Idle
     }

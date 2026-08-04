@@ -45,4 +45,58 @@
     <string name="alert_dismiss_button">הבנתי</string>
     <string name="alert_tts_immediate">%1$s. %2$s. היכנסו למרחב המוגן.</string>
     <string name="alert_tts_prewarning">התרעה מקדימה. בדקות הקרובות צפויות התרעות באזורך. התקדמו למרחב המוגן.</string>
+    <string name="alert_drill_banner">⚠️ תרגיל — לא התרעה אמיתית</string>
+
+    <!-- Area picker -->
+    <string name="areas_title">בחירת אזורים ויישובים</string>
+    <string name="areas_search_hint">חיפוש יישוב…</string>
+    <string name="areas_selected_count">%1$d יישובים נבחרו</string>
+    <string name="areas_many_selected_warning">תקבל התרעות רבות שלא רלוונטיות לך — זה מוריד את הרגישות שלך להתרעה אמיתית.</string>
+    <string name="areas_save_button">שמור</string>
+    <string name="areas_none_selected_error">בחר לפחות יישוב אחד כדי להמשיך</string>
+
+    <!-- Sound settings -->
+    <string name="sound_immediate_title">צליל התרעה מיידית</string>
+    <string name="sound_prewarning_title">צליל התרעה מקדימה</string>
+    <string name="sound_pick_system">רינגטון מהמערכת</string>
+    <string name="sound_pick_file">קובץ מהטלפון</string>
+    <string name="sound_test_button">בדוק</string>
+    <string name="sound_stop_button">עצור</string>
+    <string name="sound_confirm_button">שמעתי את זה, זה יעיר אותי</string>
+    <string name="sound_not_tested_warning">חובה ללחוץ \"בדוק\" ולאשר לפני שהצליל ייכנס לתוקף</string>
+    <string name="sound_tested_confirmation">✅ נבדק ואושר</string>
+    <string name="sound_simulate_button">סימולציית התרעה מלאה (תרגיל)</string>
+    <string name="sound_simulate_disclaimer">⚠️ זהו תרגיל בלבד — לא התרעה אמיתית</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">ברוכים הבאים</string>
+    <string name="onboarding_welcome_disclaimer">אפליקציה עצמאית שאינה קשורה לפיקוד העורף או לצה"ל. אינה תחליף למערכות ההתרעה הרשמיות. עשויה לא לפעול בשל תקלות רשת, הגדרות המכשיר או שינויים במקור הנתונים.</string>
+    <string name="onboarding_next_button">המשך</string>
+    <string name="onboarding_skip_button">דלג</string>
+    <string name="onboarding_permission_granted">✅ הופעל</string>
+    <string name="onboarding_permission_denied">❌ לא הופעל</string>
+    <string name="onboarding_open_settings_button">פתח הגדרות</string>
+    <string name="onboarding_notifications_title">הרשאת התראות</string>
+    <string name="onboarding_notifications_explain">בלי זה, האפליקציה לא תוכל להעיר אותך בלילה.</string>
+    <string name="onboarding_dnd_title">גישה למצב \"נא לא להפריע\"</string>
+    <string name="onboarding_dnd_explain">בלי זה, ההתרעה עלולה להישאר שקטה כשהטלפון במצב נא לא להפריע.</string>
+    <string name="onboarding_fsi_title">הרשאת מסך מלא</string>
+    <string name="onboarding_fsi_explain">בלי זה, המסך לא ייפתח אוטומטית כשהמכשיר נעול — אבל הצליל עדיין יושמע במלואו.</string>
+    <string name="onboarding_battery_title">פטור מאופטימיזציית סוללה</string>
+    <string name="onboarding_battery_explain">בלי זה, המערכת עלולה להרדים את האפליקציה אחרי כמה שעות ולעצור את ההגנה.</string>
+    <string name="onboarding_oem_title">הגדרות נוספות עבור %1$s</string>
+    <string name="onboarding_finish_title">אתה מוגן</string>
+    <string name="onboarding_finish_button">סיום</string>
+
+    <!-- Debug panel -->
+    <string name="debug_panel_title">פאנל דיבוג</string>
+    <string name="debug_inject_alert">הזרק התרעה מזויפת</string>
+    <string name="debug_kind_label">סוג</string>
+    <string name="debug_settlement_label">יישוב</string>
+
+    <!-- Settings menu -->
+    <string name="settings_areas_item">אזורים ויישובים</string>
+    <string name="settings_sound_item">צלילי התרעה</string>
+    <string name="settings_diagnostics_item">אבחון הרשאות</string>
+    <string name="settings_back">חזרה</string>
 </resources>

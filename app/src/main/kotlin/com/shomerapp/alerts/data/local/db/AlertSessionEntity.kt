@@ -19,6 +19,7 @@ data class AlertSessionEntity(
     val desc: String,
     val durationSeconds: Int,
     val acknowledgedByUser: Boolean,
+    val isDrill: Boolean = false,
 ) {
     companion object {
         const val SINGLETON_ID = 0

@@ -12,6 +12,27 @@ class AlertSessionReducerTest {
     private fun reduce(state: AlertSessionState, event: AlertSessionEvent) = AlertSessionReducer.reduce(state, event)
 
     @Test
+    fun `a drill alert is marked as a drill all the way through, and clearing it stays marked too`() {
+        val immediate = reduce(
+            AlertSessionState.Idle,
+            AlertSessionEvent.ImmediateReceived(listOf("תל אביב"), "ירי רקטות וטילים", "d", 600, 0, isDrill = true),
+        ) as AlertSessionState.Immediate
+        assertTrue("a drill must never be indistinguishable from a real alert (§8)", immediate.isDrill)
+
+        val cleared = reduce(immediate, AlertSessionEvent.AllClearReceived(listOf("תל אביב"), 1000))
+        assertTrue(cleared is AlertSessionState.Cleared && cleared.isDrill)
+    }
+
+    @Test
+    fun `a real alert is never accidentally marked as a drill`() {
+        val immediate = reduce(
+            AlertSessionState.Idle,
+            AlertSessionEvent.ImmediateReceived(listOf("תל אביב"), "ירי רקטות וטילים", "d", 600, 0),
+        ) as AlertSessionState.Immediate
+        assertFalse(immediate.isDrill)
+    }
+
+    @Test
     fun `prewarning then immediate 2m09s later is a smooth transition that keeps the prewarning start time`() {
         val afterPrewarning = reduce(
             AlertSessionState.Idle,

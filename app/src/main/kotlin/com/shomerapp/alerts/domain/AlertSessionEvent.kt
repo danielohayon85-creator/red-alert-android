@@ -6,6 +6,7 @@ sealed interface AlertSessionEvent {
         val title: String,
         val desc: String,
         val nowMillis: Long,
+        val isDrill: Boolean = false,
     ) : AlertSessionEvent
 
     data class ImmediateReceived(
@@ -14,6 +15,7 @@ sealed interface AlertSessionEvent {
         val desc: String,
         val durationSeconds: Int,
         val nowMillis: Long,
+        val isDrill: Boolean = false,
     ) : AlertSessionEvent
 
     data class AllClearReceived(val cities: List<String>, val nowMillis: Long) : AlertSessionEvent

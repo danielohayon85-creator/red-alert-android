@@ -14,6 +14,9 @@ sealed interface AlertSessionState {
         val settlements: List<String>,
         val title: String,
         val desc: String,
+        /** True when this came from the Stage 6 "simulate full alert" drill, not a real oref
+         *  message — the screen MUST show this clearly (§8: "חובה שיהיה מסומן בבירור כתרגיל"). */
+        val isDrill: Boolean = false,
     ) : AlertSessionState
 
     /** A PREWARNING that got no follow-up IMMEDIATE within the 5-minute window — expected for
@@ -32,6 +35,7 @@ sealed interface AlertSessionState {
         /** True once the user pressed "אני במרחב המוגן" — stops the sound but must NOT stop the
          *  countdown or suppress new settlements being added to the list (§8). */
         val acknowledgedByUser: Boolean,
+        val isDrill: Boolean = false,
     ) : AlertSessionState
 
     /** Local duration timer elapsed but no official ALL_CLEAR arrived yet — §4.1's most
@@ -40,7 +44,8 @@ sealed interface AlertSessionState {
         val startedAtEpochMillis: Long,
         val settlements: List<String>,
         val title: String,
+        val isDrill: Boolean = false,
     ) : AlertSessionState
 
-    data class Cleared(val settlements: List<String>) : AlertSessionState
+    data class Cleared(val settlements: List<String>, val isDrill: Boolean = false) : AlertSessionState
 }

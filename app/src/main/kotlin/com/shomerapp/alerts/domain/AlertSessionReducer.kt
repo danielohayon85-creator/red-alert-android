@@ -22,7 +22,7 @@ object AlertSessionReducer {
     private fun onPrewarning(state: AlertSessionState, event: AlertSessionEvent.PrewarningReceived): AlertSessionState =
         when (state) {
             is AlertSessionState.Idle, is AlertSessionState.PrewarningExpired, is AlertSessionState.Cleared ->
-                AlertSessionState.Prewarning(event.nowMillis, event.cities.distinct(), event.title, event.desc)
+                AlertSessionState.Prewarning(event.nowMillis, event.cities.distinct(), event.title, event.desc, event.isDrill)
 
             is AlertSessionState.Prewarning ->
                 // Accumulate settlements, don't reset the start time (§8: don't reset the timer
@@ -48,6 +48,7 @@ object AlertSessionReducer {
                     desc = event.desc,
                     durationSeconds = event.durationSeconds,
                     acknowledgedByUser = false,
+                    isDrill = event.isDrill,
                 )
 
             is AlertSessionState.Prewarning ->
@@ -61,6 +62,7 @@ object AlertSessionReducer {
                     desc = event.desc,
                     durationSeconds = event.durationSeconds,
                     acknowledgedByUser = false,
+                    isDrill = event.isDrill || state.isDrill,
                 )
 
             is AlertSessionState.Immediate ->
@@ -83,14 +85,15 @@ object AlertSessionReducer {
                     desc = event.desc,
                     durationSeconds = event.durationSeconds,
                     acknowledgedByUser = false,
+                    isDrill = event.isDrill,
                 )
         }
 
     private fun onAllClear(state: AlertSessionState, event: AlertSessionEvent.AllClearReceived): AlertSessionState {
-        val activeSettlements = when (state) {
-            is AlertSessionState.Immediate -> state.settlements
-            is AlertSessionState.WaitingForAllClear -> state.settlements
-            else -> emptyList()
+        val (activeSettlements, isDrill) = when (state) {
+            is AlertSessionState.Immediate -> state.settlements to state.isDrill
+            is AlertSessionState.WaitingForAllClear -> state.settlements to state.isDrill
+            else -> emptyList<String>() to false
         }
         val overlaps = activeSettlements.any { it in event.cities }
         // §4.1: an all-clear for a settlement with no active alert on this device is ignored
@@ -98,11 +101,11 @@ object AlertSessionReducer {
         // given, so there's nothing to tell the user they can leave).
         if (!overlaps) return state
 
-        return AlertSessionState.Cleared(activeSettlements)
+        return AlertSessionState.Cleared(activeSettlements, isDrill)
     }
 
     private fun onLocalTimerElapsed(state: AlertSessionState): AlertSessionState = when (state) {
-        is AlertSessionState.Immediate -> AlertSessionState.WaitingForAllClear(state.startedAtEpochMillis, state.settlements, state.title)
+        is AlertSessionState.Immediate -> AlertSessionState.WaitingForAllClear(state.startedAtEpochMillis, state.settlements, state.title, state.isDrill)
         else -> state
     }
 

@@ -7,10 +7,12 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.shomerapp.alerts.data.connectivity.ConnectivityObserver
+import com.shomerapp.alerts.data.remote.AlertFetcherSwitch
 import com.shomerapp.alerts.data.repository.OrefPollingRepository
 import com.shomerapp.alerts.data.repository.PollOutcome
 import com.shomerapp.alerts.domain.AlertSessionManager
 import com.shomerapp.alerts.domain.ServiceHealthTracker
+import com.shomerapp.alerts.domain.SettlementRelevanceFilter
 import com.shomerapp.alerts.service.notification.ServiceNotifications
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -30,6 +32,8 @@ class AlertForegroundService : LifecycleService() {
     @Inject lateinit var connectivityObserver: ConnectivityObserver
     @Inject lateinit var healthTracker: ServiceHealthTracker
     @Inject lateinit var sessionManager: AlertSessionManager
+    @Inject lateinit var relevanceFilter: SettlementRelevanceFilter
+    @Inject lateinit var fetcherSwitch: AlertFetcherSwitch
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -64,7 +68,7 @@ class AlertForegroundService : LifecycleService() {
         }
     }
 
-    private fun handlePollOutcome(outcome: PollOutcome) {
+    private suspend fun handlePollOutcome(outcome: PollOutcome) {
         // Renews the bounded wake lock on every tick instead of holding it unboundedly (§6):
         // WakeLock.acquire(timeout) resets the timer when called again while already held, so as
         // long as polling keeps ticking the lock never lapses, but a stuck/dead poll loop lets it
@@ -74,10 +78,11 @@ class AlertForegroundService : LifecycleService() {
             is PollOutcome.Empty, is PollOutcome.NoChange -> healthTracker.onPollSuccess()
             is PollOutcome.AlertUpdate -> {
                 healthTracker.onPollSuccess()
-                // TODO(Stage 6): filter outcome.alert.cities against the user's selected
-                // settlements before forwarding — right now every incoming alert is treated as
-                // relevant since there's no settings UI yet to have picked any.
-                sessionManager.onPollOutcome(outcome)
+                // Snapshotted here, not inside the filter/session manager — this is the moment
+                // the outcome was actually fetched via the mock source, which is what "is this a
+                // drill" needs to reflect (§8: a drill must always be visibly marked as one).
+                val isDrill = fetcherSwitch.mockModeEnabled.value
+                relevanceFilter.filterRelevant(outcome)?.let { sessionManager.onPollOutcome(it, isDrill) }
             }
             is PollOutcome.NetworkError, is PollOutcome.MalformedResponse -> {
                 if (healthTracker.onPollFailure() && ServiceNotifications.hasNotificationPermission(this)) {
