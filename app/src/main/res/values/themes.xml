@@ -14,10 +14,14 @@
 
     <!-- Cold-start splash (androidx.core.splashscreen): covers both the pre-Compose OS window
          and, via MainActivity's setKeepOnScreenCondition, the moment while the first DataStore
-         read (onboardingCompleted) is still in flight — so there's never a blank frame. -->
+         read (onboardingCompleted) is still in flight — so there's never a blank frame.
+         windowSplashScreenAnimatedIcon references an <animated-vector> (ic_splash_animated.xml,
+         scale+fade "pop-in" via splash_icon_scale.xml) rather than a static icon — the duration
+         below must match the animator's total duration for the OS to wait for it to finish. -->
     <style name="Theme.Azakon.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#0B0F14</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
+        <item name="windowSplashScreenAnimationDuration">450</item>
         <item name="postSplashScreenTheme">@style/Theme.Azakon</item>
     </style>
 </resources>

@@ -104,7 +104,13 @@
 
 **דרישת "Prominent in-app disclosure"**: מסך "מיקום אוטומטי" בהגדרות (`LocationSettingsScreen.kt`) מציג את ההסבר המלא **לפני** שהמתג ניתן להפעלה וגורם לבקשת ההרשאה — לא רק דיאלוג המערכת. זה כבר ממומש בקוד, לא רק תוכנן.
 
-**⚠️ טרם אומת על מכשיר אמיתי — סימון כנה של אי-ודאות**: Android 14+ הידק את ההגבלות על שירותי foreground שמשתמשים במיקום כשלא הוצהר עבורם `android:foregroundServiceType="location"` במפורש. השירות הקיים (`AlertForegroundService`) מוצהר כ-`specialUse` בלבד (§1) — ייתכן שקריאות המיקום ממנו ייחסמו או יוגבלו בפועל במכשירי Android 14+ גם עם ההרשאה מאושרת, במיוחד כשהאפליקציה לגמרי ברקע. זה דורש בדיקה אמיתית על מכשיר; אם מתגלה בעיה, הפתרון הסביר הוא הוספת `location` כסוג foreground service נוסף (`android:foregroundServiceType="specialUse|location"`), מה שדורש גם הצהרת justification נפרדת ל-`FOREGROUND_SERVICE_LOCATION` בקונסולה. **לא בוצע כאן במכוון** — עדיף לאמת קודם שזה בכלל נחוץ בפועל לפני שמוסיפים עוד שכבת הצהרות.
+**✅ תוקן**: `AlertForegroundService` מוצהר עכשיו עם **שני** סוגי foreground service — `android:foregroundServiceType="specialUse|location"` (אנדרואיד תומך בהצהרה מרובת-סוגים, מופרדת ב-`|`). נוספה גם `<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />`, הנדרשת החל מ-API 34 לכל שירות שמצהיר על סוג `location` — בלעדיה `startForeground()` זורק `SecurityException` על Android 14+.
+
+**נוסח הצדקה נוסף (לשדה justification של `FOREGROUND_SERVICE_LOCATION` בקונסולה, בנוסף להצדקת ה-`specialUse` ב-§1):**
+
+> אותו שירות foreground יחיד (`AlertForegroundService`) שמריץ את הפולינג בזמן אמת של התרעות פיקוד העורף (ר' §1) גם מבצע, **רק כאשר המשתמש הפעיל בעצמו** את תכונת "מיקום אוטומטי" האופציונלית (כבויה כברירת מחדל), בדיקת מיקום מזדמנת אחת לכ-20 דקות כדי לזהות את היישוב הנוכחי. הסוג `location` מוצהר בנוסף ל-`specialUse` על אותו שירות, לא כשירות נפרד — כדי לעמוד בדרישת אנדרואיד 14+ להצהרת סוג מדויקת לכל פעולה שמתבצעת בתוך foreground service.
+
+עדיין שווה לאמת בפועל על מכשיר Android 14+ אחרי ההתקנה הבאה שהמיקום אכן נבדק תקין ברקע — אבל ההצהרה שהייתה חסרה תוקנה מראש, לא מחכה לגילוי תקלה.
 
 ---
 

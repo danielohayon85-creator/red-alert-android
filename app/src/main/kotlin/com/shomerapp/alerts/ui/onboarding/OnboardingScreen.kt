@@ -7,14 +7,21 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
@@ -23,15 +30,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.graphicsLayer
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shomerapp.alerts.R
@@ -41,6 +55,7 @@ import com.shomerapp.alerts.ui.settings.areas.AreaPickerScreen
 import com.shomerapp.alerts.ui.settings.sound.SoundSettingsScreen
 import com.shomerapp.alerts.ui.settings.sound.SoundSettingsViewModel
 import com.shomerapp.alerts.ui.theme.AmberPrimary
+import com.shomerapp.alerts.ui.theme.BackgroundDark
 import com.shomerapp.alerts.ui.theme.Spacing
 import com.shomerapp.alerts.ui.theme.StatusActiveGreen
 
@@ -87,27 +102,95 @@ private fun StepScaffold(
 
 @Composable
 private fun WelcomeStep(onNext: () -> Unit) {
+    // "Pop in" entrance for the icon/name, matching the native splash's scale+fade icon animation
+    // (ic_splash_animated.xml) so the transition from splash into this screen feels continuous
+    // rather than two unrelated static frames.
+    val intro = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        intro.animateTo(1f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(Spacing.screen),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.itemGap)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.itemGap),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Spacer(Modifier.height(Spacing.itemGap))
+            WelcomeBadgeIcon(
+                modifier = Modifier
+                    .size(88.dp)
+                    .graphicsLayer {
+                        val scale = 0.5f + 0.5f * intro.value
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = intro.value
+                    },
+            )
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = AmberPrimary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = intro.value },
             )
             Text(
                 text = stringResource(R.string.onboarding_welcome_title),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = intro.value },
             )
-            Text(text = stringResource(R.string.onboarding_welcome_disclaimer), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = stringResource(R.string.onboarding_welcome_disclaimer),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.graphicsLayer { alpha = intro.value },
+            )
         }
         Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_next_button)) }
+    }
+}
+
+/** Same badge design as the app/splash icon (amber circle + exclamation + sound-wave arcs),
+ *  redrawn via Canvas instead of loaded as a drawable resource so [WelcomeStep] can scale/fade it
+ *  as part of the entrance animation above. */
+@Composable
+private fun WelcomeBadgeIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val unit = size.width / 108f
+
+        drawCircle(color = AmberPrimary, radius = 22f * unit, center = Offset(cx, cy))
+        drawRect(
+            color = BackgroundDark,
+            topLeft = Offset(cx - 3.2f * unit, cy - 14f * unit),
+            size = Size(6.4f * unit, 17f * unit),
+        )
+        drawCircle(color = BackgroundDark, radius = 3.4f * unit, center = Offset(cx, cy + 9f * unit))
+
+        val arcSize = Size(60f * unit, 60f * unit)
+        val arcStroke = Stroke(width = 5f * unit, cap = StrokeCap.Round)
+        drawArc(
+            color = AmberPrimary,
+            startAngle = -30f,
+            sweepAngle = 60f,
+            useCenter = false,
+            topLeft = Offset(cx - 30f * unit, cy - 30f * unit),
+            size = arcSize,
+            style = arcStroke,
+        )
+        drawArc(
+            color = AmberPrimary,
+            startAngle = 150f,
+            sweepAngle = 60f,
+            useCenter = false,
+            topLeft = Offset(cx - 30f * unit, cy - 30f * unit),
+            size = arcSize,
+            style = arcStroke,
+        )
     }
 }
 
