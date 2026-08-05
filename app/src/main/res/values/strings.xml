@@ -120,6 +120,12 @@
     <string name="location_none_detected">עדיין לא זוהה מיקום</string>
 
     <!-- Diagnostics -->
+    <string name="diagnostics_crash_log_title">שגיאת הקריסה האחרונה</string>
+    <string name="diagnostics_crash_copy_button">העתק</string>
+    <string name="diagnostics_crash_clear_button">נקה</string>
+    <string name="crash_dialog_title">האפליקציה קרסה בהפעלה הקודמת</string>
+    <string name="crash_dialog_copy_and_close">העתק וסגור</string>
+    <string name="crash_dialog_close">סגור</string>
     <string name="diagnostics_fsi_label">הרשאת מסך מלא (FSI)</string>
     <string name="diagnostics_fsi_denied">המסך לא ייפתח אוטומטית על מסך נעול — אבל הצליל המלא + heads-up עדיין יעבדו</string>
     <string name="diagnostics_dnd_label">גישה ל\"נא לא להפריע\"</string>
